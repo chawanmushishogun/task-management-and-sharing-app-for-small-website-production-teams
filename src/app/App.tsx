@@ -6,6 +6,7 @@ import {
   CheckCircle2, Star,
   Zap, Send, ChevronLeft, Calendar, Users
 } from "lucide-react";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 
 type Status = "todo" | "in_progress" | "done";
 
@@ -442,8 +443,8 @@ function DateRangePicker({
 }
 
 export default function App() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [projects, setProjects] = useState<Project[]>(PROJECTS);
+  const [tasks, setTasks] = useLocalStorage<Task[]>("tasks", INITIAL_TASKS);
+  const [projects, setProjects] = useLocalStorage<Project[]>("projects", PROJECTS);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("p1");
   const [view, setView] = useState<"list" | "board">("list");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -480,7 +481,7 @@ export default function App() {
   const [newTaskSection, setNewTaskSection] = useState("");
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [newComment, setNewComment] = useState("");
-  const [members, setMembers] = useState<Member[]>(MEMBERS);
+  const [members, setMembers] = useLocalStorage<Member[]>("members", MEMBERS);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
   const [newMember, setNewMember] = useState<Omit<Member, "id">>({ name: "", initials: "", color: "#3b82f6", role: "", avatarUrl: "" });
