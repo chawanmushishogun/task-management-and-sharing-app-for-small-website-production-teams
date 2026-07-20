@@ -495,6 +495,14 @@ export default function App() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
   const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useLocalStorage<string>("workspaceName", "Acme Corp");
+  const [workspaceLogo, setWorkspaceLogo] = useLocalStorage<string>("workspaceLogo", "");
+  const [showLogoEditor, setShowLogoEditor] = useState(false);
+  const [editingProject, setEditingProject] = useState(false);
+  const [projectDraft, setProjectDraft] = useState("");
+  const [editingWorkspace, setEditingWorkspace] = useState(false);
+  const [workspaceDraft, setWorkspaceDraft] = useState("");
+  const [assigneeFilter, setAssigneeFilter] = useState<string | "all">("all");
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
@@ -630,11 +638,28 @@ export default function App() {
     setShowAddTask(false);
   }
 
+  /** 空白のみの入力は保存せず、元の名前を維持する */
+  function commitProjectName(projectId: string) {
+    const name = projectDraft.trim();
+    if (name) setProjects(prev => prev.map(p => (p.id === projectId ? { ...p, name } : p)));
+    setEditingProject(false);
+  }
+
+  /** 空白のみの入力は保存せず、元の名前を維持する */
+  function commitWorkspaceName() {
+    const name = workspaceDraft.trim();
+    if (name) setWorkspaceName(name);
+    setEditingWorkspace(false);
+  }
+
   function toggleSection(section: string) {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   }
 
-  const myTasks = tasks.filter(t => t.assigneeId === "m1" && !t.completed);
+  // 全プロジェクト横断の未完了タスク。ログインの概念がないので特定個人には紐づけない
+  const crossTasks = tasks.filter(t =>
+    (assigneeFilter === "all" || t.assigneeId === assigneeFilter) && !t.completed
+  );
 
   return (
     <div className="flex h-screen bg-background overflow-hidden" style={{ fontFamily: "'Zen Kaku Gothic New', sans-serif" }}>
@@ -644,14 +669,41 @@ export default function App() {
         style={{ width: sidebarExpanded ? sidebarWidth : 56, backgroundColor: "var(--sidebar)", transition: isResizing.current ? "none" : "width 0.2s" }}
       >
         {/* Team Header */}
-        <div className="flex items-center gap-2.5 px-3 py-4 border-b border-white/10">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-            <Zap size={14} className="text-white" />
-          </div>
+        {/* 高さ h-[60px] は右のコンテンツヘッダーと揃える必要がある。片方だけ変えないこと */}
+        <div className="flex items-center gap-2.5 px-3 h-[60px] flex-shrink-0 border-b border-white/10">
+          <button
+            onClick={() => setShowLogoEditor(true)}
+            title="ロゴを変更"
+            aria-label="ロゴを変更"
+            className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden hover:opacity-80 transition-opacity"
+          >
+            {workspaceLogo
+              ? <img src={workspaceLogo} alt="" className="w-full h-full object-cover" />
+              : <Zap size={14} className="text-white" />}
+          </button>
           {sidebarExpanded && (
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-medium text-white truncate">Acme Corp</div>
-              <div className="text-[13px] text-white/40">チームワークスペース</div>
+              {editingWorkspace ? (
+                <input
+                  autoFocus
+                  value={workspaceDraft}
+                  onChange={e => setWorkspaceDraft(e.target.value)}
+                  onBlur={commitWorkspaceName}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") commitWorkspaceName();
+                    if (e.key === "Escape") setEditingWorkspace(false);
+                  }}
+                  className="w-full text-[15px] font-medium text-white bg-white/10 rounded px-1 outline-none border border-white/20 focus:border-primary"
+                />
+              ) : (
+                <div
+                  onClick={() => { setWorkspaceDraft(workspaceName); setEditingWorkspace(true); }}
+                  title="クリックして名前を変更"
+                  className="text-[15px] font-medium text-white truncate cursor-text hover:underline decoration-dotted underline-offset-2"
+                >
+                  {workspaceName}
+                </div>
+              )}
             </div>
           )}
           <button
@@ -666,7 +718,7 @@ export default function App() {
         {/* Nav Items */}
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
           {[
-            { key: "mytasks" as const, icon: CheckSquare, label: "マイタスク", badge: myTasks.length },
+            { key: "mytasks" as const, icon: CheckSquare, label: "全タスク", badge: crossTasks.length },
             ].map(({ key, icon: Icon, label, badge }) => (
             <button
               key={key}
@@ -733,7 +785,7 @@ export default function App() {
                     setDragOverProjectId(null);
                   }}
                   onDragEnd={() => { setDraggingProjectId(null); setDragOverProjectId(null); }}
-                  onClick={() => { setSelectedProjectId(project.id); setActiveNav("project"); setSelectedTaskId(null); }}
+                  onClick={() => { setSelectedProjectId(project.id); setActiveNav("project"); setEditingProject(false); }}
                   className={`w-full flex items-center px-2 py-1.5 rounded-md text-[15px] transition-colors ${
                     activeNav === "project" && selectedProjectId === project.id
                       ? "bg-white/15 text-white"
@@ -756,7 +808,7 @@ export default function App() {
                   const other = projects.find(p => p.id === OTHER_PROJECT_ID)!;
                   return (
                     <button
-                      onClick={() => { setSelectedProjectId(OTHER_PROJECT_ID); setActiveNav("project"); setSelectedTaskId(null); }}
+                      onClick={() => { setSelectedProjectId(OTHER_PROJECT_ID); setActiveNav("project"); setEditingProject(false); }}
                       className={`w-full flex items-center px-2 py-1.5 rounded-md text-[15px] transition-colors ${
                         activeNav === "project" && selectedProjectId === OTHER_PROJECT_ID
                           ? "bg-white/15 text-white"
@@ -790,14 +842,6 @@ export default function App() {
             <Settings size={15} className="flex-shrink-0" />
             {sidebarExpanded && <span className="text-[13px]">設定</span>}
           </button>
-          {sidebarExpanded && (
-            <div className="flex items-center gap-2 px-2 py-2 mt-1">
-              <Avatar member={MEMBERS[0]} size="sm" />
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] text-white/80 truncate">{MEMBERS[0].name}</div>
-              </div>
-            </div>
-          )}
         </div>
         {/* Resize handle */}
         <div
@@ -809,19 +853,42 @@ export default function App() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-6 py-3 bg-card border-b border-border flex-shrink-0">
+        {/* 高さ h-[60px] は左のサイドバーヘッダーと揃える必要がある。片方だけ変えないこと */}
+        <header className="flex items-center justify-between px-6 h-[60px] bg-card border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3">
             {activeNav === "project" && currentProject && (
               <>
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentProject.color }} />
-                <h1 className="font-medium text-foreground" style={{ fontSize: "30px" }}>{currentProject.name}</h1>
+                {editingProject ? (
+                  <input
+                    autoFocus
+                    value={projectDraft}
+                    onChange={e => setProjectDraft(e.target.value)}
+                    onBlur={() => commitProjectName(currentProject.id)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") commitProjectName(currentProject.id);
+                      if (e.key === "Escape") setEditingProject(false);
+                    }}
+                    className="font-medium text-foreground bg-transparent outline-none border-b border-primary"
+                    style={{ fontSize: "24px" }}
+                  />
+                ) : (
+                  <h1
+                    onClick={() => { setProjectDraft(currentProject.name); setEditingProject(true); }}
+                    title="クリックして名前を変更"
+                    className="font-medium text-foreground cursor-text hover:underline decoration-dotted underline-offset-4"
+                    style={{ fontSize: "24px" }}
+                  >
+                    {currentProject.name}
+                  </h1>
+                )}
                 <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {projectTasks.filter(t => !t.completed).length}件
                 </span>
               </>
             )}
-            {activeNav === "mytasks" && <h1 className="font-medium text-foreground" style={{ fontSize: "30px" }}>マイタスク</h1>}
-            {activeNav === "members" && <h1 className="font-medium text-foreground" style={{ fontSize: "30px" }}>メンバー</h1>}
+            {activeNav === "mytasks" && <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>全タスク</h1>}
+            {activeNav === "members" && <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>メンバー</h1>}
           </div>
         </header>
 
@@ -894,11 +961,11 @@ export default function App() {
                           onClick={() => toggleSection(section)}
                         >
                           {isCollapsed ? <ChevronRight size={13} className="text-muted-foreground" /> : <ChevronDown size={13} className="text-muted-foreground" />}
-                          <span className="font-medium text-foreground" style={{ fontSize: "22px" }}>{section}</span>
+                          <span className="font-medium text-foreground" style={{ fontSize: "20px" }}>{section}</span>
                         </div>
 
                         {!isCollapsed && sectionTasks.map(task => {
-                          const assignee = MEMBERS.find(m => m.id === task.assigneeId);
+                          const assignee = members.find(m => m.id === task.assigneeId);
                           const overdue = isOverdue(task.endDate) && !task.completed;
                           const isEditingName = editingTaskName?.id === task.id;
                           return (
@@ -965,7 +1032,7 @@ export default function App() {
                                     >
                                       未割り当て
                                     </button>
-                                    {MEMBERS.map(m => (
+                                    {members.map(m => (
                                       <button
                                         key={m.id}
                                         className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-foreground hover:bg-muted transition-colors"
@@ -1122,7 +1189,7 @@ export default function App() {
                           </div>
                           <div className="space-y-2 pb-2">
                             {colTasks.map(task => {
-                              const assignee = MEMBERS.find(m => m.id === task.assigneeId);
+                              const assignee = members.find(m => m.id === task.assigneeId);
                               const overdue = isOverdue(task.endDate) && !task.completed;
                               return (
                                 <div
@@ -1181,7 +1248,7 @@ export default function App() {
                                           >
                                             未割り当て
                                           </button>
-                                          {MEMBERS.map(m => (
+                                          {members.map(m => (
                                             <button
                                               key={m.id}
                                               className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-foreground hover:bg-muted transition-colors"
@@ -1218,13 +1285,46 @@ export default function App() {
         )}
 
 
-        {/* My Tasks View */}
+        {/* 全タスク（全プロジェクト横断） */}
         {activeNav === "mytasks" && (
           <div className="flex-1 flex flex-col overflow-hidden">
+            {/* 担当者フィルタ */}
+            <div className="flex items-center gap-2 px-6 py-3 border-b border-border flex-shrink-0 flex-wrap">
+              <span className="text-[13px] text-muted-foreground mr-1">担当者</span>
+              <button
+                onClick={() => setAssigneeFilter("all")}
+                className={`text-[13px] px-3 py-1 rounded-md transition-colors ${
+                  assigneeFilter === "all"
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                すべて
+              </button>
+              {members.map(m => {
+                const count = tasks.filter(t => t.assigneeId === m.id && !t.completed).length;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setAssigneeFilter(m.id)}
+                    className={`flex items-center gap-1.5 text-[13px] pl-1 pr-2.5 py-1 rounded-md transition-colors ${
+                      assigneeFilter === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <Avatar member={m} size="sm" />
+                    <span>{m.name}</span>
+                    <span className="text-muted-foreground">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
             {/* ヘッダー行 */}
             <div className="flex items-center px-6 py-2 border-b border-border bg-muted/50 text-[13px] font-medium text-muted-foreground sticky top-0 z-10 flex-shrink-0">
               <div className="w-52 flex-shrink-0">プロジェクト</div>
               <div className="flex-1 min-w-0">タスク名</div>
+              <div className="flex-shrink-0" style={{ width: COL_W }}>
+                担当者
+              </div>
               <div className="flex-shrink-0" style={{ width: COL_W }}>
                 期日
               </div>
@@ -1237,7 +1337,7 @@ export default function App() {
               <div className="w-8 flex-shrink-0" />
             </div>
             <div className="flex-1 overflow-y-auto">
-              {myTasks.map(task => {
+              {crossTasks.map(task => {
                 const project = projects.find(p => p.id === task.projectId);
                 const overdue = isOverdue(task.endDate) && !task.completed;
                 const isEditingName = editingTaskName?.id === task.id;
@@ -1275,6 +1375,39 @@ export default function App() {
                         >
                           {task.name}
                         </span>
+                      )}
+                    </div>
+                    {/* 担当者 */}
+                    <div className="flex-shrink-0 relative" style={{ width: COL_W }} onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => setOpenAssignee(openAssignee === task.id + "_all" ? null : task.id + "_all")}
+                        className="flex items-center gap-1 px-1 py-0.5 rounded hover:bg-muted transition-colors"
+                      >
+                        {(() => {
+                          const a = members.find(m => m.id === task.assigneeId);
+                          return a
+                            ? <Avatar member={a} size="sm" showName />
+                            : <span className="text-[13px] text-muted-foreground hover:text-foreground">未割り当て</span>;
+                        })()}
+                      </button>
+                      {openAssignee === task.id + "_all" && (
+                        <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 py-1 w-44">
+                          <button
+                            className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-muted transition-colors"
+                            onClick={() => { updateTask(task.id, { assigneeId: null }); setOpenAssignee(null); }}
+                          >
+                            未割り当て
+                          </button>
+                          {members.map(m => (
+                            <button
+                              key={m.id}
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-foreground hover:bg-muted transition-colors"
+                              onClick={() => { updateTask(task.id, { assigneeId: m.id }); setOpenAssignee(null); }}
+                            >
+                              <Avatar member={m} size="sm" showName />
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                     {/* 期日 */}
@@ -1322,10 +1455,14 @@ export default function App() {
                   </div>
                 );
               })}
-              {myTasks.length === 0 && (
+              {crossTasks.length === 0 && (
                 <div className="text-center py-16 text-muted-foreground">
                   <CheckCircle2 size={40} className="mx-auto mb-3 opacity-30" />
-                  <p className="text-[15px]">すべてのタスクが完了しています！</p>
+                  <p className="text-[15px]">
+                    {assigneeFilter === "all"
+                      ? "未完了のタスクはありません"
+                      : "この担当者の未完了タスクはありません"}
+                  </p>
                 </div>
               )}
             </div>
@@ -1512,6 +1649,36 @@ export default function App() {
       )}
 
       {/* 新規Webプロジェクト作成モーダル */}
+      {/* ワークスペースのロゴ変更 */}
+      {showLogoEditor && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowLogoEditor(false)}>
+          <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-medium text-foreground">ロゴを変更</h3>
+              <button onClick={() => setShowLogoEditor(false)} className="p-1 rounded text-muted-foreground hover:bg-muted transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+            <ImageDropZone value={workspaceLogo} onChange={setWorkspaceLogo} />
+            <div className="flex justify-between items-center mt-4">
+              <button
+                onClick={() => setWorkspaceLogo("")}
+                disabled={!workspaceLogo}
+                className="text-[13px] px-3 py-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40"
+              >
+                既定のアイコンに戻す
+              </button>
+              <button
+                onClick={() => setShowLogoEditor(false)}
+                className="text-[13px] px-4 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                完了
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showNewProject && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowNewProject(false)}>
           <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
