@@ -487,10 +487,16 @@ export default function App() {
   const [newMember, setNewMember] = useState<Omit<Member, "id">>({ name: "", initials: "", color: "#3b82f6", role: "", avatarUrl: "" });
   const [editingTaskName, setEditingTaskName] = useState<{ id: string; value: string } | null>(null);
   const COL_W = 160;
+  // タスク名列がこれ以上縮まないようにする下限。ヘッダーと行の両方に同じ値を適用すること
+  const TASK_NAME_MIN_W = 400;
+  // セクション名の左端に合わせるための字下げ: px-6(24px) + 矢印(13px) + gap-2(8px)
+  const TASK_NAME_PL = 45;
   const [openAssignee, setOpenAssignee] = useState<string | null>(null);
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showNewProject, setShowNewProject] = useState(false);
+  const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
+  const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
   const [showAddSection, setShowAddSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
@@ -518,6 +524,22 @@ export default function App() {
 
   function updateTaskStatus(id: string, status: Status) {
     updateTask(id, { status, completed: status === "done" });
+  }
+
+  /** サイドバーのプロジェクトを並び替える。「その他案件」は対象外で常に末尾に残す。 */
+  function reorderProjects(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    setProjects(prev => {
+      const others = prev.filter(p => p.id === OTHER_PROJECT_ID);
+      const list = prev.filter(p => p.id !== OTHER_PROJECT_ID);
+      const from = list.findIndex(p => p.id === sourceId);
+      const to = list.findIndex(p => p.id === targetId);
+      if (from === -1 || to === -1) return prev;
+      const next = [...list];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return [...next, ...others];
+    });
   }
 
   function addWebProject() {
@@ -691,19 +713,52 @@ export default function App() {
           {/* Projects Section */}
           <div className="pt-3">
             {sidebarExpanded && (
-              <div className="px-2 py-1 text-[13px] font-medium text-white/40 uppercase tracking-wider">
-                プロジェクト
+              <div className="flex items-center gap-1 px-2 py-1">
+                <span className="flex-1 text-[13px] font-medium text-white/40 uppercase tracking-wider">
+                  プロジェクト
+                </span>
+                <button
+                  onClick={() => setShowNewProject(true)}
+                  title="プロジェクトを追加"
+                  aria-label="プロジェクトを追加"
+                  className="p-0.5 rounded text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <Plus size={14} />
+                </button>
               </div>
             )}
             <div className="mt-1 space-y-0.5">
               {projects.filter(p => p.id !== OTHER_PROJECT_ID).map(project => (
                 <button
                   key={project.id}
+                  draggable={sidebarExpanded}
+                  onDragStart={e => {
+                    setDraggingProjectId(project.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={e => {
+                    // preventDefault しないとドロップが受け付けられない
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (draggingProjectId && draggingProjectId !== project.id) {
+                      setDragOverProjectId(project.id);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverProjectId(cur => (cur === project.id ? null : cur))}
+                  onDrop={e => {
+                    e.preventDefault();
+                    if (draggingProjectId) reorderProjects(draggingProjectId, project.id);
+                    setDraggingProjectId(null);
+                    setDragOverProjectId(null);
+                  }}
+                  onDragEnd={() => { setDraggingProjectId(null); setDragOverProjectId(null); }}
                   onClick={() => { setSelectedProjectId(project.id); setActiveNav("project"); setSelectedTaskId(null); }}
                   className={`w-full flex items-center px-2 py-1.5 rounded-md text-[15px] transition-colors ${
                     activeNav === "project" && selectedProjectId === project.id
                       ? "bg-white/15 text-white"
                       : "text-white/60 hover:text-white hover:bg-white/10"
+                  } ${draggingProjectId === project.id ? "opacity-40" : ""} ${
+                    dragOverProjectId === project.id ? "ring-1 ring-white/50" : ""
                   }`}
                 >
                   {sidebarExpanded && (
@@ -714,15 +769,6 @@ export default function App() {
                   )}
                 </button>
               ))}
-              {sidebarExpanded && (
-                <button
-                  onClick={() => setShowNewProject(true)}
-                  className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] text-white/40 hover:text-white/60 transition-colors"
-                >
-                  <Plus size={13} />
-                  <span>Webサイト制作を追加</span>
-                </button>
-              )}
               {/* その他案件 — 区切り線の後に固定表示 */}
               <div className="border-t border-white/10 pt-1 mt-1">
                 {(() => {
@@ -840,7 +886,7 @@ export default function App() {
                 <div className="flex-1 overflow-y-auto">
                   {/* Table header */}
                   <div className="flex items-center border-b border-border bg-muted/50 text-[13px] font-medium text-muted-foreground sticky top-0 z-10">
-                    <div className="flex-1 min-w-0 px-6 py-2 border-r border-border/40">タスク名</div>
+                    <div className="flex-1 pr-6 py-2 border-r border-border/40" style={{ minWidth: TASK_NAME_MIN_W, paddingLeft: TASK_NAME_PL }}>タスク名</div>
                     <div className="flex-shrink-0 px-3 py-2 border-r border-border/40" style={{ width: COL_W }}>
                       担当者
                                           </div>
@@ -860,7 +906,7 @@ export default function App() {
                     const sectionTasks = filteredTasks.filter(t => t.section === section);
                     const isCollapsed = expandedSections[section] === false;
                     return (
-                      <div key={section}>
+                      <div key={section} className="my-[20px]">
                         {/* Section header */}
                         <div
                           className="flex items-center gap-2 px-6 py-2 cursor-pointer hover:bg-muted/30 group"
@@ -881,7 +927,7 @@ export default function App() {
                               className={`flex items-center border-b border-border/50 hover:bg-card cursor-pointer group transition-colors ${selectedTaskId === task.id ? "bg-accent/50" : ""}`}
                             >
                               {/* タスク名 */}
-                              <div className="flex-1 min-w-0 px-6 py-1.5 border-r border-border/20">
+                              <div className="flex-1 pr-6 py-1.5 border-r border-border/20" style={{ minWidth: TASK_NAME_MIN_W, paddingLeft: TASK_NAME_PL }}>
                                 {isEditingName ? (
                                   <input
                                     autoFocus
@@ -970,13 +1016,20 @@ export default function App() {
                               </div>
                               {/* 備考 */}
                               <div className="flex-shrink-0 overflow-hidden px-2 py-1.5" style={{ width: COL_W }} onClick={e => e.stopPropagation()}>
-                                <input
-                                  type="text"
+                                <textarea
+                                  rows={1}
                                   value={task.note}
                                   onChange={e => updateTask(task.id, { note: e.target.value })}
                                   onClick={e => e.stopPropagation()}
+                                  // 中身に合わせて高さを追従させる（毎レンダー実行される）
+                                  ref={el => {
+                                    if (el) {
+                                      el.style.height = "auto";
+                                      el.style.height = `${el.scrollHeight}px`;
+                                    }
+                                  }}
                                   placeholder="メモを入力..."
-                                  className="w-full text-[13px] px-2 py-0.5 rounded border border-transparent hover:border-border focus:border-primary focus:outline-none bg-transparent focus:bg-card transition-colors placeholder-muted-foreground/50"
+                                  className="w-full resize-none overflow-hidden block text-[13px] leading-snug px-2 py-0.5 rounded border border-transparent hover:border-border focus:border-primary focus:outline-none bg-transparent focus:bg-card transition-colors placeholder-muted-foreground/50"
                                 />
                               </div>
                               <div className="w-8 flex justify-end flex-shrink-0">
@@ -991,8 +1044,8 @@ export default function App() {
                           );
                         })}
 
-                        {/* Add task in section */}
-                        {!isCollapsed && (
+                        {/* Add task in section — その他案件のみ。Web制作プロジェクトはテンプレート固定 */}
+                        {!isCollapsed && selectedProjectId === OTHER_PROJECT_ID && (
                           <button
                             onClick={() => { setNewTaskSection(section); setShowAddTask(true); }}
                             className="flex items-center gap-2 px-6 py-2 text-[13px] text-muted-foreground hover:text-primary transition-colors w-full text-left"
@@ -1086,12 +1139,14 @@ export default function App() {
                                 </div>
                               );
                             })}
-                            <button
-                              onClick={() => { setNewTaskSection(col.label); setShowAddTask(true); }}
-                              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                            >
-                              <Plus size={12} />追加
-                            </button>
+                            {selectedProjectId === OTHER_PROJECT_ID && (
+                              <button
+                                onClick={() => { setNewTaskSection(col.label); setShowAddTask(true); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                              >
+                                <Plus size={12} />追加
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
