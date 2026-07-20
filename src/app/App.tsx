@@ -105,7 +105,7 @@ const INITIAL_TASKS: Task[] = [
   // デザイン
   { id: "p1-6",  projectId: "p1", section: "デザイン",           name: "トップページ PC版",                assigneeId: "m3", endDate: "2026-08-05", startDate: "2026-07-28", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   { id: "p1-7",  projectId: "p1", section: "デザイン",           name: "トップページ TA版",                assigneeId: "m3", endDate: "2026-08-07", startDate: "2026-08-05", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "p1-8",  projectId: "p1", section: "デザイン",           name: "トップページ SP版",                assigneeId: "m3", endDate: "2026-08-15", startDate: "2026-08-08", status: "in_progress", completed: false, description: "", tags: [], subtasks: [{ id: "s1", name: "デザイン作成", done: true }, { id: "s2", name: "クライアント確認", done: false }], comments: [] },
+  { id: "p1-8",  projectId: "p1", section: "デザイン",           name: "トップページ SP版",                assigneeId: "m3", endDate: "2026-08-15", startDate: "2026-08-08", status: "in_progress", completed: false, description: "", tags: [], subtasks: [{ id: "s1", name: "デザイン作成", done: true }, { id: "s2", name: "クライアント確認", done: false }], comments: [], note: "" },
   { id: "p1-9",  projectId: "p1", section: "デザイン",           name: "favicon / touchicon / og:image",   assigneeId: "m3", endDate: "2026-08-18", startDate: null, status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
   // コーディング
   { id: "p1-10", projectId: "p1", section: "コーディング",       name: "HTML/CSS/JS",                      assigneeId: "m2", endDate: "2026-09-05", startDate: "2026-08-20", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
@@ -136,7 +136,7 @@ const INITIAL_TASKS: Task[] = [
   { id: "p2-1",  projectId: "p2", section: "企画/情報設計/PM",  name: "PM（プロジェクトマネージメント）", assigneeId: "m1", endDate: "2026-08-01", startDate: null, status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   { id: "p2-2",  projectId: "p2", section: "企画/情報設計/PM",  name: "サイトマップ",                     assigneeId: "m1", endDate: "2026-08-08", startDate: "2026-08-05", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   { id: "p2-3",  projectId: "p2", section: "企画/情報設計/PM",  name: "見積",                             assigneeId: "m1", endDate: "2026-07-28", startDate: null, status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "p2-4",  projectId: "p2", section: "企画/情報設計/PM",  name: "ワイヤフレーム",                   assigneeId: "m3", endDate: "2026-08-20", startDate: "2026-08-12", status: "in_progress", completed: false, description: "", tags: [], subtasks: [{ id: "s3", name: "トップ・商品一覧", done: true }, { id: "s4", name: "商品詳細・カート", done: false }], comments: [] },
+  { id: "p2-4",  projectId: "p2", section: "企画/情報設計/PM",  name: "ワイヤフレーム",                   assigneeId: "m3", endDate: "2026-08-20", startDate: "2026-08-12", status: "in_progress", completed: false, description: "", tags: [], subtasks: [{ id: "s3", name: "トップ・商品一覧", done: true }, { id: "s4", name: "商品詳細・カート", done: false }], comments: [], note: "" },
   { id: "p2-5",  projectId: "p2", section: "企画/情報設計/PM",  name: "スケジュール作成",                 assigneeId: "m1", endDate: "2026-07-30", startDate: null, status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   // デザイン
   { id: "p2-6",  projectId: "p2", section: "デザイン",           name: "トップページ PC版",                assigneeId: "m3", endDate: "2026-09-05", startDate: "2026-08-25", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
@@ -277,15 +277,6 @@ function Avatar({ member, size = "sm", showName = false }: { member: Member; siz
   );
 }
 
-
-function StatusBadge({ status }: { status: Status }) {
-  const cfg = STATUS_CONFIG[status];
-  return (
-    <span className={`inline-flex items-center text-[13px] px-2 py-0.5 rounded-full font-medium border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
-      {cfg.label}
-    </span>
-  );
-}
 
 function formatDateShort(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -474,7 +465,6 @@ export default function App() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   }
-  const [projectsExpanded, setProjectsExpanded] = useState(true);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
   const [newTaskSection, setNewTaskSection] = useState("");
@@ -518,12 +508,6 @@ export default function App() {
   });
 
   const sections = [...new Set(filteredTasks.map(t => t.section))];
-
-  function toggleTask(id: string) {
-    setTasks(prev => prev.map(t =>
-      t.id === id ? { ...t, completed: !t.completed, status: !t.completed ? "done" : "in_progress" } : t
-    ));
-  }
 
   function updateTask(id: string, patch: Partial<Task>) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
