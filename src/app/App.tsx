@@ -3,8 +3,8 @@ import {
   CheckSquare, ChevronDown, ChevronRight,
   Plus, Settings, MoreHorizontal, X,
   List, Columns,
-  CheckCircle2, Star,
-  Zap, Send, ChevronLeft, Calendar, Users
+  CheckCircle2,
+  Zap, ChevronLeft, Calendar, Users
 } from "lucide-react";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 
@@ -447,7 +447,6 @@ export default function App() {
   const [projects, setProjects] = useLocalStorage<Project[]>("projects", PROJECTS);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("p1");
   const [view, setView] = useState<"list" | "board">("list");
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState<"mytasks" | "project" | "members">("project");
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(240);
@@ -480,7 +479,6 @@ export default function App() {
   const [newTaskName, setNewTaskName] = useState("");
   const [newTaskSection, setNewTaskSection] = useState("");
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
-  const [newComment, setNewComment] = useState("");
   const [members, setMembers] = useLocalStorage<Member[]>("members", MEMBERS);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -497,11 +495,12 @@ export default function App() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
   const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
   const [showAddSection, setShowAddSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
 
-  const selectedTask = tasks.find(t => t.id === selectedTaskId) || null;
   const currentProject = projects.find(p => p.id === selectedProjectId);
 
   const projectTasks = tasks.filter(t => t.projectId === selectedProjectId);
@@ -629,24 +628,6 @@ export default function App() {
     setTasks(prev => [...prev, task]);
     setNewTaskName("");
     setShowAddTask(false);
-  }
-
-  function addComment() {
-    if (!newComment.trim() || !selectedTaskId) return;
-    setTasks(prev => prev.map(t =>
-      t.id === selectedTaskId
-        ? { ...t, comments: [...t.comments, { id: `c${Date.now()}`, authorId: "m1", text: newComment, time: "今" }] }
-        : t
-    ));
-    setNewComment("");
-  }
-
-  function toggleSubtask(taskId: string, subtaskId: string) {
-    setTasks(prev => prev.map(t =>
-      t.id === taskId
-        ? { ...t, subtasks: t.subtasks.map(s => s.id === subtaskId ? { ...s, done: !s.done } : s) }
-        : t
-    ));
   }
 
   function toggleSection(section: string) {
@@ -923,11 +904,24 @@ export default function App() {
                           return (
                             <div
                               key={task.id}
-                              onClick={() => setSelectedTaskId(task.id)}
-                              className={`flex items-center border-b border-border/50 hover:bg-card cursor-pointer group transition-colors ${selectedTaskId === task.id ? "bg-accent/50" : ""}`}
+                              className="flex items-center border-b border-border/50 hover:bg-card group transition-colors"
                             >
-                              {/* タスク名 */}
-                              <div className="flex-1 pr-6 py-1.5 border-r border-border/20" style={{ minWidth: TASK_NAME_MIN_W, paddingLeft: TASK_NAME_PL }}>
+                              {/* タスク名。左の px-6 + チェック(13px) + gap-2(8px) で TASK_NAME_PL と同じ字下げになる */}
+                              <div className="flex-1 flex items-center gap-2 px-6 py-1.5 border-r border-border/20" style={{ minWidth: TASK_NAME_MIN_W }}>
+                                <button
+                                  onClick={() => updateTaskStatus(task.id, task.status === "done" ? "todo" : "done")}
+                                  title={task.status === "done" ? "未着手に戻す" : "完了にする"}
+                                  aria-label={task.status === "done" ? "未着手に戻す" : "完了にする"}
+                                  className="flex-shrink-0 leading-none"
+                                >
+                                  <CheckCircle2
+                                    size={13}
+                                    className={task.status === "done"
+                                      ? "text-green-500"
+                                      : "text-muted-foreground/30 hover:text-muted-foreground"}
+                                  />
+                                </button>
+                                <div className="flex-1 min-w-0">
                                 {isEditingName ? (
                                   <input
                                     autoFocus
@@ -946,10 +940,12 @@ export default function App() {
                                     {task.name}
                                   </span>
                                 )}
+                                </div>
                               </div>
 
                               {/* 担当者 */}
-                              <div className="flex flex-shrink-0 relative overflow-hidden px-2 py-1.5 border-r border-border/20" style={{ width: COL_W }}>
+                              {/* overflow-hidden を付けると絶対配置のドロップダウンが切れるので付けない */}
+                              <div className="flex flex-shrink-0 relative px-2 py-1.5 border-r border-border/20" style={{ width: COL_W }}>
                                 <button
                                   onClick={e => { e.stopPropagation(); setOpenAssignee(openAssignee === task.id ? null : task.id); }}
                                   className="flex items-center gap-1 px-1 py-0.5 rounded hover:bg-muted transition-colors"
@@ -983,7 +979,7 @@ export default function App() {
                               </div>
 
                               {/* 期日 */}
-                              <div className="flex-shrink-0 relative overflow-hidden px-2 py-1.5 border-r border-border/20" style={{ width: COL_W }}>
+                              <div className="flex-shrink-0 relative px-2 py-1.5 border-r border-border/20" style={{ width: COL_W }}>
                                 <button
                                   onClick={e => { e.stopPropagation(); setOpenDatePicker(openDatePicker === task.id ? null : task.id); }}
                                   className={`flex items-center gap-1 text-[13px] px-2 py-0.5 rounded hover:bg-muted transition-colors ${overdue ? "text-red-500 font-medium" : "text-muted-foreground"}`}
@@ -1093,47 +1089,109 @@ export default function App() {
 
               {/* Board View */}
               {view === "board" && (
-                <div className="flex-1 overflow-x-auto overflow-y-hidden">
-                  <div className="flex gap-4 p-6 h-full min-w-max">
+                <div className="flex-1 overflow-auto">
+                  {/* 列ごとにスクロールさせるとカード内のドロップダウンが切れるので、ボード全体を1つのスクロール領域にする。
+                      items-stretch(既定)で全列が最も高い列に揃い、ドロップ可能な範囲もそこまで広がる */}
+                  <div className="flex gap-4 p-6 min-w-max">
                     {BOARD_COLUMNS.map(col => {
                       const colTasks = filteredTasks.filter(t => t.status === col.key);
                       return (
-                        <div key={col.key} className="flex flex-col w-64 flex-shrink-0">
-                          <div className="flex items-center gap-2 mb-3">
+                        <div
+                          key={col.key}
+                          onDragOver={e => {
+                            if (!draggingTaskId) return;
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            setDragOverColumn(col.key);
+                          }}
+                          onDragLeave={() => setDragOverColumn(cur => (cur === col.key ? null : cur))}
+                          onDrop={e => {
+                            e.preventDefault();
+                            if (draggingTaskId) updateTaskStatus(draggingTaskId, col.key);
+                            setDraggingTaskId(null);
+                            setDragOverColumn(null);
+                          }}
+                          className={`flex flex-col w-64 flex-shrink-0 min-h-[140px] rounded-xl bg-muted/40 p-2 transition-colors ${
+                            dragOverColumn === col.key ? "bg-primary/10 ring-1 ring-primary/40" : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-3 px-1 pt-1">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
                             <span className="text-[13px] font-medium text-foreground">{col.label}</span>
                             <span className="text-[13px] text-muted-foreground ml-auto">{colTasks.length}</span>
                           </div>
-                          <div className="flex-1 overflow-y-auto space-y-2 pb-2">
+                          <div className="space-y-2 pb-2">
                             {colTasks.map(task => {
                               const assignee = MEMBERS.find(m => m.id === task.assigneeId);
                               const overdue = isOverdue(task.endDate) && !task.completed;
                               return (
                                 <div
                                   key={task.id}
-                                  onClick={() => setSelectedTaskId(task.id)}
-                                  className={`bg-card rounded-lg p-3 border border-border cursor-pointer hover:border-primary/30 hover:shadow-sm transition-all group ${selectedTaskId === task.id ? "border-primary/50 shadow-sm" : ""}`}
+                                  draggable
+                                  onDragStart={e => {
+                                    setDraggingTaskId(task.id);
+                                    e.dataTransfer.effectAllowed = "move";
+                                  }}
+                                  onDragEnd={() => { setDraggingTaskId(null); setDragOverColumn(null); }}
+                                  className={`relative bg-card rounded-lg p-3 border border-border hover:border-primary/30 hover:shadow-sm transition-all group ${
+                                    draggingTaskId === task.id ? "opacity-40" : ""
+                                  }`}
                                 >
+                                  {/* どの工程のタスクかはボードでは失われるのでカードに出す */}
+                                  <div className="text-[11px] text-muted-foreground mb-1 truncate">{task.section}</div>
                                   <div className="flex items-start mb-2">
                                     <span className="text-[13px] font-medium leading-snug flex-1 text-foreground">
                                       {task.name}
                                     </span>
                                   </div>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                      {task.subtasks.length > 0 && (
-                                        <span className="text-[13px] text-muted-foreground">
-                                          {task.subtasks.filter(s => s.done).length}/{task.subtasks.length}
-                                        </span>
+                                  <div className="flex items-center justify-between gap-1">
+                                    {/* 期日 */}
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => setOpenDatePicker(openDatePicker === task.id + "_board" ? null : task.id + "_board")}
+                                        className={`flex items-center gap-1 text-[13px] px-1 py-0.5 rounded hover:bg-muted transition-colors ${overdue ? "text-red-500 font-medium" : "text-muted-foreground"}`}
+                                      >
+                                        <Calendar size={10} className="flex-shrink-0" />
+                                        {formatDateRange(task.startDate, task.endDate)}
+                                      </button>
+                                      {openDatePicker === task.id + "_board" && (
+                                        <DateRangePicker
+                                          startDate={task.startDate}
+                                          endDate={task.endDate}
+                                          onChange={(s, e) => updateTask(task.id, { startDate: s, endDate: e })}
+                                          onClose={() => setOpenDatePicker(null)}
+                                        />
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                      {(task.startDate || task.endDate) && (
-                                        <span className={`text-[13px] ${overdue ? "text-red-500" : "text-muted-foreground"}`}>
-                                          {formatDateRange(task.startDate, task.endDate)}
-                                        </span>
+                                    {/* 担当者 */}
+                                    <div className="relative flex-shrink-0">
+                                      <button
+                                        onClick={() => setOpenAssignee(openAssignee === task.id + "_board" ? null : task.id + "_board")}
+                                        className="flex items-center rounded hover:bg-muted transition-colors p-0.5"
+                                      >
+                                        {assignee
+                                          ? <Avatar member={assignee} size="sm" />
+                                          : <span className="text-[13px] text-muted-foreground hover:text-foreground px-1">未割り当て</span>}
+                                      </button>
+                                      {openAssignee === task.id + "_board" && (
+                                        <div className="absolute top-full mt-1 right-0 bg-card border border-border rounded-lg shadow-lg z-50 py-1 w-44">
+                                          <button
+                                            className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-muted transition-colors"
+                                            onClick={() => { updateTask(task.id, { assigneeId: null }); setOpenAssignee(null); }}
+                                          >
+                                            未割り当て
+                                          </button>
+                                          {MEMBERS.map(m => (
+                                            <button
+                                              key={m.id}
+                                              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-foreground hover:bg-muted transition-colors"
+                                              onClick={() => { updateTask(task.id, { assigneeId: m.id }); setOpenAssignee(null); }}
+                                            >
+                                              <Avatar member={m} size="sm" showName />
+                                            </button>
+                                          ))}
+                                        </div>
                                       )}
-                                      {assignee && <Avatar member={assignee} size="sm" />}
                                     </div>
                                   </div>
                                 </div>
@@ -1156,177 +1214,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Task Detail Panel */}
-            {selectedTask && (
-              <div className="w-96 flex-shrink-0 border-l border-border bg-card overflow-y-auto flex flex-col">
-                {/* Panel header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedTask.status}
-                      onChange={e => updateTaskStatus(selectedTask.id, e.target.value as Status)}
-                      className={`text-[13px] px-2 py-1 rounded-full border font-medium cursor-pointer outline-none ${STATUS_CONFIG[selectedTask.status].color} ${STATUS_CONFIG[selectedTask.status].bg} ${STATUS_CONFIG[selectedTask.status].border}`}
-                    >
-                      {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-                        <option key={k} value={k}>{v.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                      <MoreHorizontal size={14} />
-                    </button>
-                    <button
-                      onClick={() => setSelectedTaskId(null)}
-                      className="p-1.5 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex-1 p-4 space-y-5 overflow-y-auto">
-                  {/* Task name */}
-                  <div>
-                    <h2 className="text-base font-medium text-foreground leading-snug">{selectedTask.name}</h2>
-                  </div>
-
-                  {/* Meta info */}
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[13px] text-muted-foreground w-16 flex-shrink-0">担当者</span>
-                      {(() => {
-                        const assignee = MEMBERS.find(m => m.id === selectedTask.assigneeId);
-                        return assignee ? (
-                          <Avatar member={assignee} size="sm" showName />
-                        ) : (
-                          <span className="text-[13px] text-muted-foreground">未割り当て</span>
-                        );
-                      })()}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[13px] text-muted-foreground w-16 flex-shrink-0">期日</span>
-                      <div className="relative">
-                        <button
-                          onClick={() => setOpenDatePicker(openDatePicker === selectedTask.id + "_panel" ? null : selectedTask.id + "_panel")}
-                          className={`flex items-center gap-1 text-[13px] px-2 py-0.5 rounded hover:bg-muted transition-colors ${isOverdue(selectedTask.endDate) && !selectedTask.completed ? "text-red-500 font-medium" : "text-foreground"}`}
-                        >
-                          <Calendar size={10} />
-                          {formatDateRange(selectedTask.startDate, selectedTask.endDate)}
-                        </button>
-                        {openDatePicker === selectedTask.id + "_panel" && (
-                          <DateRangePicker
-                            startDate={selectedTask.startDate}
-                            endDate={selectedTask.endDate}
-                            onChange={(s, e) => updateTask(selectedTask.id, { startDate: s, endDate: e })}
-                            onClose={() => setOpenDatePicker(null)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[13px] text-muted-foreground w-16 flex-shrink-0">セクション</span>
-                      <span className="text-[13px] text-foreground">{selectedTask.section}</span>
-                    </div>
-                    {selectedTask.tags.length > 0 && (
-                      <div className="flex items-start gap-3">
-                        <span className="text-[13px] text-muted-foreground w-16 flex-shrink-0 mt-0.5">タグ</span>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedTask.tags.map(tag => (
-                            <span key={tag} className="text-[13px] px-2 py-0.5 rounded bg-secondary text-muted-foreground">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  {selectedTask.description && (
-                    <div>
-                      <div className="text-[13px] font-medium text-muted-foreground mb-1.5">説明</div>
-                      <p className="text-[15px] text-foreground leading-relaxed">{selectedTask.description}</p>
-                    </div>
-                  )}
-
-                  {/* Subtasks */}
-                  {selectedTask.subtasks.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-[13px] font-medium text-muted-foreground">サブタスク</div>
-                        <span className="text-[13px] text-muted-foreground">
-                          {selectedTask.subtasks.filter(s => s.done).length}/{selectedTask.subtasks.length}
-                        </span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {selectedTask.subtasks.map(subtask => (
-                          <label key={subtask.id} className="flex items-center gap-2 cursor-pointer group/sub">
-                            <input
-                              type="checkbox"
-                              checked={subtask.done}
-                              onChange={() => toggleSubtask(selectedTask.id, subtask.id)}
-                              className="rounded w-3.5 h-3.5 accent-primary"
-                            />
-                            <span className={`text-[13px] ${subtask.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                              {subtask.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                      {/* Progress bar */}
-                      <div className="mt-2 bg-muted rounded-full h-1.5">
-                        <div
-                          className="bg-green-500 h-1.5 rounded-full transition-all"
-                          style={{ width: `${(selectedTask.subtasks.filter(s => s.done).length / selectedTask.subtasks.length) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Comments */}
-                  <div>
-                    <div className="text-[13px] font-medium text-muted-foreground mb-3">コメント</div>
-                    <div className="space-y-3">
-                      {selectedTask.comments.map(comment => {
-                        const author = MEMBERS.find(m => m.id === comment.authorId);
-                        return (
-                          <div key={comment.id} className="flex gap-2">
-                            {author && <Avatar member={author} size="sm" />}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="text-[13px] font-medium text-foreground">{author?.name}</span>
-                                <span className="text-[13px] text-muted-foreground">{comment.time}</span>
-                              </div>
-                              <div className="bg-muted rounded-lg px-3 py-2 text-[13px] text-foreground">
-                                {comment.text}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {/* Comment input */}
-                    <div className="flex gap-2 mt-3">
-                      <Avatar member={MEMBERS[0]} size="sm" />
-                      <div className="flex-1 flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
-                        <input
-                          className="flex-1 bg-transparent text-[13px] text-foreground placeholder-muted-foreground outline-none"
-                          placeholder="コメントを追加..."
-                          value={newComment}
-                          onChange={e => setNewComment(e.target.value)}
-                          onKeyDown={e => e.key === "Enter" && addComment()}
-                        />
-                        <button
-                          onClick={addComment}
-                          className="text-primary hover:text-primary/80 transition-colors"
-                        >
-                          <Send size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -1357,8 +1244,8 @@ export default function App() {
                 return (
                   <div
                     key={task.id}
-                    onClick={() => { setSelectedProjectId(task.projectId); setActiveNav("project"); setSelectedTaskId(task.id); }}
-                    className={`flex items-center px-6 py-1.5 border-b border-border/50 hover:bg-card cursor-pointer group transition-colors ${selectedTaskId === task.id ? "bg-accent/50" : ""}`}
+                    onClick={() => { setSelectedProjectId(task.projectId); setActiveNav("project"); }}
+                    className="flex items-center px-6 py-1.5 border-b border-border/50 hover:bg-card cursor-pointer group transition-colors"
                   >
                     {/* プロジェクト */}
                     <div className="w-52 flex-shrink-0 pr-3">
@@ -1391,7 +1278,7 @@ export default function App() {
                       )}
                     </div>
                     {/* 期日 */}
-                    <div className="flex-shrink-0 relative overflow-hidden" style={{ width: COL_W }}>
+                    <div className="flex-shrink-0 relative" style={{ width: COL_W }}>
                       <button
                         onClick={e => { e.stopPropagation(); setOpenDatePicker(openDatePicker === task.id ? null : task.id); }}
                         className={`flex items-center gap-1 text-[13px] px-2 py-0.5 rounded hover:bg-muted transition-colors ${overdue ? "text-red-500 font-medium" : "text-muted-foreground"}`}
