@@ -6,7 +6,7 @@ import { DueDateCell } from "./DueDateCell";
 import { EditableTaskName } from "./EditableTaskName";
 import { NoteCell } from "./NoteCell";
 import { StatusSelect } from "./StatusSelect";
-import { COL_W } from "../constants";
+import { ALL_TASKS_NAME_MIN_W, COL_W } from "../constants";
 import { OTHER_PROJECT_ID } from "../data";
 import { isOverdue } from "../utils/date";
 import type { Member, Project, Status, Task } from "../types";
@@ -56,18 +56,18 @@ export function AllTasksView({
         ))}
       </div>
 
-      {/* ヘッダー行 */}
-      <div className="flex items-center px-6 py-2 border-b border-border bg-muted/50 text-[13px] font-medium text-muted-foreground sticky top-0 z-10 flex-shrink-0">
-        <div className="w-52 flex-shrink-0">プロジェクト</div>
-        <div className="flex-1 min-w-0">タスク名</div>
-        <div className="flex-shrink-0" style={{ width: COL_W }}>担当者</div>
-        <div className="flex-shrink-0" style={{ width: COL_W }}>期日</div>
-        <div className="flex-shrink-0" style={{ width: COL_W }}>ステータス</div>
-        <div className="flex-shrink-0" style={{ width: COL_W }}>備考</div>
-        <div className="w-8 flex-shrink-0" />
-      </div>
+      {/* ヘッダー行は行と同じスクロール領域に置くこと。外に出すと横スクロール時に列がずれる */}
+      <div className="flex-1 overflow-auto">
+        <div className="flex items-center px-6 py-2 border-b border-border bg-muted/50 text-[13px] font-medium text-muted-foreground sticky top-0 z-10">
+          <div className="w-52 flex-shrink-0">プロジェクト</div>
+          <div className="flex-1" style={{ minWidth: ALL_TASKS_NAME_MIN_W }}>タスク名</div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>担当者</div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>期日</div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>ステータス</div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>備考</div>
+          <div className="w-8 flex-shrink-0" />
+        </div>
 
-      <div className="flex-1 overflow-y-auto">
         {visibleTasks.map(task => {
           const project = projects.find(p => p.id === task.projectId);
           return (
@@ -85,7 +85,7 @@ export function AllTasksView({
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0 pr-2">
+              <div className="flex-1 pr-2" style={{ minWidth: ALL_TASKS_NAME_MIN_W }}>
                 <EditableTaskName name={task.name} onChange={name => onUpdateTask(task.id, { name })} />
               </div>
               <div className="flex-shrink-0" style={{ width: COL_W }}>
