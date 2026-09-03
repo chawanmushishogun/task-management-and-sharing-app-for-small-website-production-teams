@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../Modal";
+import { isSubmitEnter } from "../../utils/keyboard";
 
 /** 「その他案件」の案件（セクション）追加 */
 export function AddSectionModal({ onSubmit, onClose }: { onSubmit: (name: string) => void; onClose: () => void }) {
@@ -14,7 +15,7 @@ export function AddSectionModal({ onSubmit, onClose }: { onSubmit: (name: string
         placeholder="例：ロゴ制作、チラシデザイン..."
         value={name}
         onChange={e => setName(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && submit()}
+        onKeyDown={e => isSubmitEnter(e) && submit()}
       />
       <div className="flex justify-end gap-2">
         <button onClick={onClose} className="text-[13px] px-3 py-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors">
