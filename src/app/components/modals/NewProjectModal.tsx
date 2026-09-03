@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../Modal";
+import { isSubmitEnter } from "../../utils/keyboard";
 import { WEB_TEMPLATE } from "../../data";
 
 /** Webサイト制作プロジェクトの新規作成。セクションとタスクはテンプレートから自動生成される */
@@ -15,7 +16,7 @@ export function NewProjectModal({ onSubmit, onClose }: { onSubmit: (name: string
         placeholder="例：株式会社○○ コーポレートサイト"
         value={name}
         onChange={e => setName(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && submit()}
+        onKeyDown={e => isSubmitEnter(e) && submit()}
       />
       <div className="mb-4 p-3 bg-muted/50 rounded-lg">
         <p className="text-[13px] text-muted-foreground mb-2">以下のセクション・タスクが自動で作成されます：</p>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../Modal";
+import { isSubmitEnter } from "../../utils/keyboard";
 
 export function AddTaskModal({
   sections, defaultSection, onSubmit, onClose,
@@ -25,7 +26,7 @@ export function AddTaskModal({
         placeholder="タスク名を入力..."
         value={name}
         onChange={e => setName(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && submit()}
+        onKeyDown={e => isSubmitEnter(e) && submit()}
       />
       <div className="flex items-center gap-2 mb-4">
         <select

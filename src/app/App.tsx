@@ -4,6 +4,7 @@ import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useMembers } from "./hooks/useMembers";
 import { useProjects } from "./hooks/useProjects";
 import { useSidebarResize } from "./hooks/useSidebarResize";
+import { isSubmitEnter } from "./utils/keyboard";
 import { useTasks } from "./hooks/useTasks";
 import { OTHER_PROJECT_ID, STATUS_CONFIG, WEB_TEMPLATE } from "./data";
 import type { Member, Status } from "./types";
@@ -115,7 +116,7 @@ export default function App() {
                     onChange={e => setProjectDraft(e.target.value)}
                     onBlur={() => commitProjectName(currentProject.id)}
                     onKeyDown={e => {
-                      if (e.key === "Enter") commitProjectName(currentProject.id);
+                      if (isSubmitEnter(e)) commitProjectName(currentProject.id);
                       if (e.key === "Escape") setEditingProject(false);
                     }}
                     className="font-medium text-foreground bg-transparent outline-none border-b border-primary"
