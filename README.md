@@ -165,7 +165,7 @@ Asanaの機能が多すぎて使いこなせていない。月額コストの割
 - フレームワーク：React + TypeScript + Vite（フロントエンド）
 - DB／バックエンド：Supabase
 - デプロイ先：Vercel（卒業制作・ポートフォリオ用の公開先）／将来的に社内NASへ移行予定（実運用用）
-- 使用予定ライブラリ：shadcn/ui
+- 使用予定ライブラリ：Tailwind CSS（スタイリング）、lucide-react（アイコン）、@supabase/supabase-js（DB接続）。shadcn/uiのコンポーネント一式がFigma Makeの出力に同梱されているが、現時点では画面から使っておらず、必要になった部品（ダイアログ・セレクトなど）だけ使う方針
 
 ### 10-2. 技術選定の比較検討
 
