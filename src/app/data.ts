@@ -44,13 +44,13 @@ export const WEB_TEMPLATE: { section: string; tasks: string[] }[] = [
 ];
 
 export const PROJECTS: Project[] = [
-  { id: "p1", name: "株式会社山田商事 コーポレートサイト", color: "#e8673c", starred: true, taskCount: 23, completedCount: 8 },
-  { id: "p2", name: "美容室 Luce ECサイト", color: "#3b82f6", starred: true, taskCount: 23, completedCount: 3 },
+  { id: "p1", name: "株式会社サンプル商事 コーポレートサイト", color: "#e8673c", starred: true, taskCount: 23, completedCount: 8 },
+  { id: "p2", name: "美容室 SAMPLE ECサイト", color: "#3b82f6", starred: true, taskCount: 23, completedCount: 3 },
   { id: OTHER_PROJECT_ID, name: "その他案件", color: "#6b7280", starred: false, taskCount: 11, completedCount: 3 },
 ];
 
 export const INITIAL_TASKS: Task[] = [
-  // ── p1: 株式会社山田商事 コーポレートサイト ──
+  // ── p1: 株式会社サンプル商事 コーポレートサイト ──
   // 企画/情報設計/PM
   { id: "p1-1",  projectId: "p1", section: "企画/情報設計/PM",  name: "PM（プロジェクトマネージメント）", assigneeId: "m1", endDate: "2026-07-15", startDate: "2026-07-10", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   { id: "p1-2",  projectId: "p1", section: "企画/情報設計/PM",  name: "サイトマップ",                     assigneeId: "m1", endDate: "2026-07-18", startDate: "2026-07-15", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
@@ -86,7 +86,7 @@ export const INITIAL_TASKS: Task[] = [
   // 公開
   { id: "p1-27", projectId: "p1", section: "公開",               name: "公開作業",                         assigneeId: "m2", endDate: "2026-09-20", startDate: "2026-09-15", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
 
-  // ── p2: 美容室 Luce ECサイト ──
+  // ── p2: 美容室 SAMPLE ECサイト ──
   // 企画/情報設計/PM
   { id: "p2-1",  projectId: "p2", section: "企画/情報設計/PM",  name: "PM（プロジェクトマネージメント）", assigneeId: "m1", endDate: "2026-08-01", startDate: null, status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
   { id: "p2-2",  projectId: "p2", section: "企画/情報設計/PM",  name: "サイトマップ",                     assigneeId: "m1", endDate: "2026-08-08", startDate: "2026-08-05", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
@@ -123,17 +123,17 @@ export const INITIAL_TASKS: Task[] = [
   { id: "p2-27", projectId: "p2", section: "公開",               name: "公開作業",                         assigneeId: "m2", endDate: "2026-10-25", startDate: "2026-10-22", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
 
   // ── その他案件 ──
-  // 田中工務店 LP修正
-  { id: "po-1",  projectId: "p_other", section: "田中工務店 LP修正",           name: "修正箇所のヒアリング",       assigneeId: "m1", startDate: "2026-07-15", endDate: "2026-07-16", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-2",  projectId: "p_other", section: "田中工務店 LP修正",           name: "デザイン修正",               assigneeId: "m3", startDate: "2026-07-17", endDate: "2026-07-22", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-3",  projectId: "p_other", section: "田中工務店 LP修正",           name: "コーディング修正",           assigneeId: "m2", startDate: "2026-07-23", endDate: "2026-07-25", status: "in_progress", completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-4",  projectId: "p_other", section: "田中工務店 LP修正",           name: "納品・確認",                 assigneeId: "m1", startDate: "2026-07-28", endDate: "2026-07-28", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
+  // サンプル工務店 LP修正
+  { id: "po-1",  projectId: "p_other", section: "サンプル工務店 LP修正",           name: "修正箇所のヒアリング",       assigneeId: "m1", startDate: "2026-07-15", endDate: "2026-07-16", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-2",  projectId: "p_other", section: "サンプル工務店 LP修正",           name: "デザイン修正",               assigneeId: "m3", startDate: "2026-07-17", endDate: "2026-07-22", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-3",  projectId: "p_other", section: "サンプル工務店 LP修正",           name: "コーディング修正",           assigneeId: "m2", startDate: "2026-07-23", endDate: "2026-07-25", status: "in_progress", completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-4",  projectId: "p_other", section: "サンプル工務店 LP修正",           name: "納品・確認",                 assigneeId: "m1", startDate: "2026-07-28", endDate: "2026-07-28", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
 
-  // 株式会社フジタ バナー制作
-  { id: "po-5",  projectId: "p_other", section: "株式会社フジタ バナー制作",   name: "バナーサイズ・仕様確認",     assigneeId: "m1", startDate: "2026-07-18", endDate: "2026-07-18", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-6",  projectId: "p_other", section: "株式会社フジタ バナー制作",   name: "デザイン制作（3パターン）",  assigneeId: "m3", startDate: "2026-07-21", endDate: "2026-07-24", status: "in_progress", completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-7",  projectId: "p_other", section: "株式会社フジタ バナー制作",   name: "クライアント確認・修正",     assigneeId: "m3", startDate: "2026-07-25", endDate: "2026-07-29", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
-  { id: "po-8",  projectId: "p_other", section: "株式会社フジタ バナー制作",   name: "納品",                       assigneeId: "m1", startDate: "2026-07-30", endDate: "2026-07-30", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
+  // 株式会社サンプル広告 バナー制作
+  { id: "po-5",  projectId: "p_other", section: "株式会社サンプル広告 バナー制作",   name: "バナーサイズ・仕様確認",     assigneeId: "m1", startDate: "2026-07-18", endDate: "2026-07-18", status: "done",        completed: true,  description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-6",  projectId: "p_other", section: "株式会社サンプル広告 バナー制作",   name: "デザイン制作（3パターン）",  assigneeId: "m3", startDate: "2026-07-21", endDate: "2026-07-24", status: "in_progress", completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-7",  projectId: "p_other", section: "株式会社サンプル広告 バナー制作",   name: "クライアント確認・修正",     assigneeId: "m3", startDate: "2026-07-25", endDate: "2026-07-29", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
+  { id: "po-8",  projectId: "p_other", section: "株式会社サンプル広告 バナー制作",   name: "納品",                       assigneeId: "m1", startDate: "2026-07-30", endDate: "2026-07-30", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
 
   // 社内業務
   { id: "po-9",  projectId: "p_other", section: "社内業務",                    name: "請求書発行（7月分）",         assigneeId: "m1", startDate: null,         endDate: "2026-07-31", status: "todo",        completed: false, description: "", tags: [], subtasks: [], comments: [], note: "" },
