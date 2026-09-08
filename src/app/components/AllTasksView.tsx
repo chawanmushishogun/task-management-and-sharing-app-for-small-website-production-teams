@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, MoreHorizontal } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { AssigneePicker } from "./AssigneePicker";
 import { Avatar } from "./Avatar";
 import { DueDateCell } from "./DueDateCell";
@@ -65,7 +65,6 @@ export function AllTasksView({
           <div className="flex-shrink-0" style={{ width: COL_W }}>期日</div>
           <div className="flex-shrink-0" style={{ width: COL_W }}>ステータス</div>
           <div className="flex-shrink-0" style={{ width: COL_W }}>備考</div>
-          <div className="w-8 flex-shrink-0" />
         </div>
 
         {visibleTasks.map(task => {
@@ -109,14 +108,6 @@ export function AllTasksView({
               </div>
               <div className="flex-shrink-0 overflow-hidden" style={{ width: COL_W }} onClick={e => e.stopPropagation()}>
                 <NoteCell value={task.note} onChange={note => onUpdateTask(task.id, { note })} />
-              </div>
-              <div className="w-8 flex justify-end flex-shrink-0">
-                <button
-                  onClick={e => e.stopPropagation()}
-                  className="p-1 rounded text-transparent group-hover:text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <MoreHorizontal size={13} />
-                </button>
               </div>
             </div>
           );

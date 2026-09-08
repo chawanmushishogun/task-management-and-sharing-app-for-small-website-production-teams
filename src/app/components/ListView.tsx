@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { AssigneePicker } from "./AssigneePicker";
 import { DueDateCell } from "./DueDateCell";
 import { EditableTaskName } from "./EditableTaskName";
@@ -33,7 +33,6 @@ export function ListView({
         <div className="flex-shrink-0 px-3 py-2 border-r border-border/40" style={{ width: COL_W }}>期日</div>
         <div className="flex-shrink-0 px-3 py-2 border-r border-border/40" style={{ width: COL_W }}>ステータス</div>
         <div className="flex-shrink-0 px-3 py-2 border-r border-border/40" style={{ width: COL_W }}>備考</div>
-        <div className="w-8 flex-shrink-0" />
       </div>
 
       {sections.map(section => {
@@ -98,14 +97,6 @@ export function ListView({
                   <NoteCell multiline value={task.note} onChange={note => onUpdateTask(task.id, { note })} />
                 </div>
 
-                <div className="w-8 flex justify-end flex-shrink-0">
-                  <button
-                    onClick={e => e.stopPropagation()}
-                    className="p-1 rounded text-transparent group-hover:text-muted-foreground hover:bg-muted transition-colors"
-                  >
-                    <MoreHorizontal size={13} />
-                  </button>
-                </div>
               </div>
             ))}
 
