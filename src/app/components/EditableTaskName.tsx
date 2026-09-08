@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isSubmitEnter } from "../utils/keyboard";
 
 /** クリックでインライン編集に切り替わるタスク名。Enter か blur で確定する */
 export function EditableTaskName({ name, onChange }: { name: string; onChange: (name: string) => void }) {
@@ -25,7 +26,7 @@ export function EditableTaskName({ name, onChange }: { name: string; onChange: (
       value={draft}
       onChange={e => setDraft(e.target.value)}
       onBlur={commit}
-      onKeyDown={e => { if (e.key === "Enter") commit(); e.stopPropagation(); }}
+      onKeyDown={e => { if (isSubmitEnter(e)) commit(); e.stopPropagation(); }}
       onClick={e => e.stopPropagation()}
     />
   );

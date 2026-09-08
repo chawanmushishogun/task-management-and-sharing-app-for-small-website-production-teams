@@ -3,6 +3,7 @@ import { CheckSquare, ChevronDown, ChevronRight, Plus, Settings, Users, Zap } fr
 import { OTHER_PROJECT_ID } from "../data";
 import type { Project } from "../types";
 import type { NavKey } from "../navigation";
+import { isSubmitEnter } from "../utils/keyboard";
 
 export function Sidebar({
   projects, activeNav, selectedProjectId, crossTaskCount,
@@ -80,7 +81,7 @@ export function Sidebar({
                 onChange={e => setWorkspaceDraft(e.target.value)}
                 onBlur={commitWorkspaceName}
                 onKeyDown={e => {
-                  if (e.key === "Enter") commitWorkspaceName();
+                  if (isSubmitEnter(e)) commitWorkspaceName();
                   if (e.key === "Escape") setEditingWorkspace(false);
                 }}
                 className="w-full text-[15px] font-medium text-white bg-white/10 rounded px-1 outline-none border border-white/20 focus:border-primary"
