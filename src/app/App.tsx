@@ -280,7 +280,6 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
                 tasks={filteredTasks}
                 sections={projectSections}
                 members={members}
-                isOtherProject={isOtherProject}
                 onUpdateTask={updateTask}
                 onUpdateStatus={updateTaskStatus}
                 onAddTask={() => setAddTaskSectionId("")}
