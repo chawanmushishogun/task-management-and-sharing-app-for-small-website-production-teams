@@ -1,9 +1,20 @@
 import { useState, useRef } from "react";
+import { uploadImage, type ImageBucket } from "../../repositories/images";
 
-const MAX_IMAGE_BITS = 1_000_000; // 1 Mbit
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-export function ImageDropZone({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+/** 画像をドロップ／選択すると縮小して Storage に上げ、公開 URL を onChange に渡す */
+export function ImageDropZone({
+  value,
+  bucket,
+  onChange,
+}: {
+  value: string;
+  bucket: ImageBucket;
+  onChange: (url: string) => void;
+}) {
   const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -12,14 +23,16 @@ export function ImageDropZone({ value, onChange }: { value: string; onChange: (u
       setError("画像ファイルを選択してください");
       return;
     }
-    if (file.size * 8 > MAX_IMAGE_BITS) {
-      setError(`ファイルサイズが大きすぎます（上限 1Mbit / 約125KB）`);
+    if (file.size > MAX_FILE_BYTES) {
+      setError("ファイルサイズが大きすぎます（上限 10MB）");
       return;
     }
     setError("");
-    const reader = new FileReader();
-    reader.onload = (e) => onChange(e.target?.result as string);
-    reader.readAsDataURL(file);
+    setUploading(true);
+    uploadImage(bucket, file)
+      .then(onChange)
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      .finally(() => setUploading(false));
   }
 
   return (
@@ -40,7 +53,9 @@ export function ImageDropZone({ value, onChange }: { value: string; onChange: (u
         }}
         onClick={() => inputRef.current?.click()}
       >
-        {value ? (
+        {uploading ? (
+          <span className="text-[13px] text-muted-foreground">アップロード中…</span>
+        ) : value ? (
           <>
             <img src={value} alt="" className="w-16 h-16 rounded-full object-cover" />
             <span className="text-[13px] text-muted-foreground">クリックまたはドロップで変更</span>
@@ -55,7 +70,7 @@ export function ImageDropZone({ value, onChange }: { value: string; onChange: (u
               <br />
               またはクリックして選択
             </span>
-            <span className="text-[13px] text-muted-foreground/60">上限 1Mbit（約125KB）</span>
+            <span className="text-[13px] text-muted-foreground/60">自動で縮小されます（上限 10MB）</span>
           </>
         )}
         <input

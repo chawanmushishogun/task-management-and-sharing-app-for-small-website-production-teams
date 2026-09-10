@@ -36,6 +36,7 @@ export function MemberFormModal({
           </label>
           <ImageDropZone
             value={draft.avatarUrl ?? ""}
+            bucket="avatars"
             onChange={(avatarUrl) => setDraft({ ...draft, avatarUrl: avatarUrl || null })}
           />
         </div>
