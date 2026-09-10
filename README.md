@@ -311,4 +311,14 @@ npm run test:coverage  # カバレッジ（coverage/ に HTML も出る）
 - カバレッジ（2026-09-10、20テスト）：Statements 49.4% / Branches 75.6% / Functions 41.6% / Lines 49.4%（対象は `src/app` と `src/repositories`。未使用の shadcn/ui は除外）。Supabase を直接叩く `repositories/index.ts` と各セル部品（日付ピッカー等）が未カバー
 - CI（GitHub Actions）で PR ごとに typecheck / lint / format / test / build を実行
 
+### N+1 の確認
+
+Rails の Bullet に相当するツールがないので、ログイン後の初期表示で Supabase に飛ぶリクエスト数を Network タブで数えて確認した。
+
+![初期表示のリクエスト](docs/network-requests.png)
+
+- 初期表示は `rest/v1` へ **3 リクエスト**：`workspaces`、`members`、`projects`（案件→セクション→タスクを `projects(*, sections(*, tasks(*)))` のネストした select で1回に）。案件数・タスク数が増えてもリクエスト数は変わらない
+- 対策前の設計（案件ごとにセクションを取り、セクションごとにタスクを取る）だと、案件 N 件 × セクション M 件ぶんのリクエストになるところ
+- 以降の更新は「変えた列だけ update」の1リクエストずつ
+
 DB のスキーマは `supabase/migrations/`、初期データは `supabase/seed.sql`（必須）と `supabase/seed_sample.sql`（サンプル）にあり、Supabase の SQL Editor で順に実行します。本番（Vercel）には同じ環境変数を Project Settings で設定しています。
