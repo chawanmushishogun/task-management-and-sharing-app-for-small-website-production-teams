@@ -4,10 +4,11 @@ import { AssigneePicker } from "./AssigneePicker";
 import { DueDateCell } from "./DueDateCell";
 import { BOARD_COLUMNS } from "../data";
 import { isOverdue } from "../utils/date";
-import type { Member, Status, Task } from "../types";
+import type { Member, Section, Status, Task } from "../types";
 
 export function BoardView({
   tasks,
+  sections,
   members,
   isOtherProject,
   onUpdateTask,
@@ -15,12 +16,14 @@ export function BoardView({
   onAddTask,
 }: {
   tasks: Task[];
+  sections: Section[];
   members: Member[];
   isOtherProject: boolean;
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
-  onAddTask: (section: string) => void;
+  onAddTask: () => void;
 }) {
+  const sectionName = (id: string) => sections.find((s) => s.id === id)?.name ?? "";
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null);
 
@@ -74,7 +77,7 @@ export function BoardView({
                     }`}
                   >
                     {/* どの工程のタスクかはボードでは失われるのでカードに出す */}
-                    <div className="text-[11px] text-muted-foreground mb-1 truncate">{task.section}</div>
+                    <div className="text-[11px] text-muted-foreground mb-1 truncate">{sectionName(task.sectionId)}</div>
                     <div className="flex items-start mb-2">
                       <span className="text-[13px] font-medium leading-snug flex-1 text-foreground">{task.name}</span>
                     </div>
@@ -82,7 +85,7 @@ export function BoardView({
                       <DueDateCell
                         startDate={task.startDate}
                         endDate={task.endDate}
-                        overdue={isOverdue(task.endDate) && !task.completed}
+                        overdue={isOverdue(task.endDate) && task.status !== "done"}
                         onChange={(startDate, endDate) => onUpdateTask(task.id, { startDate, endDate })}
                       />
                       <div className="flex-shrink-0">
@@ -98,7 +101,7 @@ export function BoardView({
                 ))}
                 {isOtherProject && (
                   <button
-                    onClick={() => onAddTask(col.label)}
+                    onClick={onAddTask}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                   >
                     <Plus size={12} />

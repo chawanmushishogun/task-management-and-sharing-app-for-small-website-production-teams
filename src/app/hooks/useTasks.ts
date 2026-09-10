@@ -1,57 +1,63 @@
-import { useLocalStorage } from "./useLocalStorage";
-import { INITIAL_TASKS } from "../data";
+import * as repo from "../../repositories";
 import type { Status, Task } from "../types";
+import type { Store } from "./useStore";
 
 /** タスク新規作成時に呼び出し側が指定する項目。残りは既定値で埋める */
 export interface NewTaskInput {
   projectId: string;
+  sectionId: string;
   name: string;
-  section: string;
 }
 
-function createTask({ projectId, name, section }: NewTaskInput): Task {
+export function createTask({ projectId, sectionId, name }: NewTaskInput): Task {
   return {
-    // 同一ミリ秒に複数作られてもぶつからないよう乱数を混ぜる
-    id: `t${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    id: crypto.randomUUID(),
+    sectionId,
     projectId,
     name,
-    section,
     assigneeId: null,
     startDate: null,
     endDate: null,
     status: "todo",
-    description: "",
-    completed: false,
-    tags: [],
-    subtasks: [],
-    comments: [],
     note: "",
   };
 }
 
 /**
- * タスクの一覧と更新操作をまとめたフック。
- * 永続化先を localStorage から差し替えるときはこの中だけを書き換えれば済むようにしてある。
+ * タスクの一覧と更新操作。画面は先に更新し、DB には変えた列だけ書く。
  */
-export function useTasks() {
-  const [tasks, setTasks] = useLocalStorage<Task[]>("tasks", INITIAL_TASKS);
+export function useTasks(store: Store) {
+  const tasks = store.data.tasks;
 
   function updateTask(id: string, patch: Partial<Task>) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    store.mutate(
+      (prev) => ({ ...prev, tasks: prev.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) }),
+      () => repo.updateTask(id, patch),
+    );
   }
 
-  /** ステータスと completed は常に連動させる。片方だけ更新しないこと */
   function updateTaskStatus(id: string, status: Status) {
-    updateTask(id, { status, completed: status === "done" });
+    updateTask(id, { status });
   }
 
   function addTask(input: NewTaskInput) {
-    setTasks((prev) => [...prev, createTask(input)]);
+    addTasks([input]);
   }
 
   function addTasks(inputs: NewTaskInput[]) {
-    setTasks((prev) => [...prev, ...inputs.map(createTask)]);
+    const created = inputs.map(createTask);
+    store.mutate(
+      (prev) => ({ ...prev, tasks: [...prev.tasks, ...created] }),
+      () => repo.insertTasks(created),
+    );
   }
 
-  return { tasks, addTask, addTasks, updateTask, updateTaskStatus };
+  function removeTask(id: string) {
+    store.mutate(
+      (prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== id) }),
+      () => repo.deleteTask(id),
+    );
+  }
+
+  return { tasks, addTask, addTasks, updateTask, updateTaskStatus, removeTask };
 }

@@ -7,14 +7,14 @@ import { EditableTaskName } from "./EditableTaskName";
 import { NoteCell } from "./NoteCell";
 import { StatusSelect } from "./StatusSelect";
 import { ALL_TASKS_NAME_MIN_W, COL_W } from "../constants";
-import { OTHER_PROJECT_ID } from "../data";
 import { isOverdue } from "../utils/date";
-import type { Member, Project, Status, Task } from "../types";
+import type { Member, Project, Section, Status, Task } from "../types";
 
 /** 全プロジェクト横断の未完了タスク一覧。ログインの概念がないので特定個人には紐づけない */
 export function AllTasksView({
   tasks,
   projects,
+  sections,
   members,
   onUpdateTask,
   onUpdateStatus,
@@ -22,13 +22,14 @@ export function AllTasksView({
 }: {
   tasks: Task[];
   projects: Project[];
+  sections: Section[];
   members: Member[];
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onOpenProject: (projectId: string) => void;
 }) {
   const [assigneeFilter, setAssigneeFilter] = useState<string | "all">("all");
-  const openTasks = tasks.filter((t) => !t.completed);
+  const openTasks = tasks.filter((t) => t.status !== "done");
   const visibleTasks = openTasks.filter((t) => assigneeFilter === "all" || t.assigneeId === assigneeFilter);
 
   return (
@@ -97,7 +98,7 @@ export function AllTasksView({
                   <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground truncate">
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
                     {/* 「その他案件」はプロジェクト名が共通なのでセクション名のほうが手がかりになる */}
-                    {project.id === OTHER_PROJECT_ID ? task.section : project.name}
+                    {project.isOther ? (sections.find((s) => s.id === task.sectionId)?.name ?? "") : project.name}
                   </span>
                 )}
               </div>
@@ -116,7 +117,7 @@ export function AllTasksView({
                 <DueDateCell
                   startDate={task.startDate}
                   endDate={task.endDate}
-                  overdue={isOverdue(task.endDate) && !task.completed}
+                  overdue={isOverdue(task.endDate) && task.status !== "done"}
                   onChange={(startDate, endDate) => onUpdateTask(task.id, { startDate, endDate })}
                 />
               </div>
