@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Trash2 } from "lucide-react";
 import { AssigneePicker } from "./AssigneePicker";
 import { Avatar } from "./Avatar";
 import { DueDateCell } from "./DueDateCell";
@@ -19,6 +19,7 @@ export function AllTasksView({
   onUpdateTask,
   onUpdateStatus,
   onOpenProject,
+  onDeleteTask,
 }: {
   tasks: Task[];
   projects: Project[];
@@ -27,6 +28,7 @@ export function AllTasksView({
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onOpenProject: (projectId: string) => void;
+  onDeleteTask: (taskId: string) => void;
 }) {
   const [assigneeFilter, setAssigneeFilter] = useState<string | "all">("all");
   const openTasks = tasks.filter((t) => t.status !== "done");
@@ -130,6 +132,16 @@ export function AllTasksView({
                 onClick={(e) => e.stopPropagation()}
               >
                 <NoteCell value={task.note} onChange={(note) => onUpdateTask(task.id, { note })} />
+              </div>
+              <div className="flex-shrink-0 w-8 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={() => onDeleteTask(task.id)}
+                  title="タスクを削除"
+                  aria-label="タスクを削除"
+                  className="p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             </div>
           );

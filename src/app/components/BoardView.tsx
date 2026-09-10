@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { AssigneePicker } from "./AssigneePicker";
 import { DueDateCell } from "./DueDateCell";
 import { BOARD_COLUMNS } from "../data";
@@ -14,6 +14,7 @@ export function BoardView({
   onUpdateTask,
   onUpdateStatus,
   onAddTask,
+  onDeleteTask,
 }: {
   tasks: Task[];
   sections: Section[];
@@ -22,6 +23,7 @@ export function BoardView({
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onAddTask: () => void;
+  onDeleteTask: (taskId: string) => void;
 }) {
   const sectionName = (id: string) => sections.find((s) => s.id === id)?.name ?? "";
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -80,6 +82,14 @@ export function BoardView({
                     <div className="text-[11px] text-muted-foreground mb-1 truncate">{sectionName(task.sectionId)}</div>
                     <div className="flex items-start mb-2">
                       <span className="text-[13px] font-medium leading-snug flex-1 text-foreground">{task.name}</span>
+                      <button
+                        onClick={() => onDeleteTask(task.id)}
+                        title="タスクを削除"
+                        aria-label="タスクを削除"
+                        className="ml-1 p-0.5 rounded text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 size={12} />
+                      </button>
                     </div>
                     <div className="flex items-center justify-between gap-1">
                       <DueDateCell

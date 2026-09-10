@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { AssigneePicker } from "./AssigneePicker";
 import { DueDateCell } from "./DueDateCell";
 import { EditableTaskName } from "./EditableTaskName";
@@ -18,6 +18,8 @@ export function ListView({
   onUpdateStatus,
   onAddTask,
   onAddSection,
+  onDeleteTask,
+  onDeleteSection,
 }: {
   tasks: Task[];
   sections: Section[];
@@ -28,6 +30,8 @@ export function ListView({
   onUpdateStatus: (id: string, status: Status) => void;
   onAddTask: (sectionId: string) => void;
   onAddSection: () => void;
+  onDeleteTask: (taskId: string) => void;
+  onDeleteSection: (sectionId: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -73,6 +77,19 @@ export function ListView({
               <span className="font-medium text-foreground" style={{ fontSize: "20px" }}>
                 {section.name}
               </span>
+              {isOtherProject && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteSection(section.id);
+                  }}
+                  title="この案件（セクション）を削除"
+                  aria-label="この案件（セクション）を削除"
+                  className="ml-1 p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 size={13} />
+                </button>
+              )}
             </div>
 
             {!isCollapsed &&
@@ -137,6 +154,16 @@ export function ListView({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <NoteCell multiline value={task.note} onChange={(note) => onUpdateTask(task.id, { note })} />
+                  </div>
+                  <div className="flex-shrink-0 w-8 flex items-center justify-center">
+                    <button
+                      onClick={() => onDeleteTask(task.id)}
+                      title="タスクを削除"
+                      aria-label="タスクを削除"
+                      className="p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </div>
               ))}

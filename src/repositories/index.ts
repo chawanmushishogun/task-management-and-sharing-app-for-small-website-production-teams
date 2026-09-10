@@ -123,6 +123,11 @@ export async function insertSections(sections: Section[]) {
   if (error) fail("sections の追加", error);
 }
 
+export async function deleteSection(id: string) {
+  const { error } = await supabase.from("sections").delete().eq("id", id);
+  if (error) fail("sections の削除", error);
+}
+
 // --- tasks ---
 export async function insertTasks(tasks: Task[]) {
   if (tasks.length === 0) return;

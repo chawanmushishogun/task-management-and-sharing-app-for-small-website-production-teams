@@ -104,5 +104,27 @@ export function useProjects(store: Store) {
     return section;
   }
 
-  return { projects, sections, otherProject, createProject, renameProject, reorderProjects, removeProject, addSection };
+  /** セクションを削除する。中のタスクは DB 側の CASCADE で消える */
+  function removeSection(id: string) {
+    store.mutate(
+      (prev) => ({
+        ...prev,
+        sections: prev.sections.filter((s) => s.id !== id),
+        tasks: prev.tasks.filter((t) => t.sectionId !== id),
+      }),
+      () => repo.deleteSection(id),
+    );
+  }
+
+  return {
+    projects,
+    sections,
+    otherProject,
+    createProject,
+    renameProject,
+    reorderProjects,
+    removeProject,
+    addSection,
+    removeSection,
+  };
 }

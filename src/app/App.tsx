@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Columns, List } from "lucide-react";
+import { Columns, List, Trash2 } from "lucide-react";
 import { useStore } from "./hooks/useStore";
 import { useMembers } from "./hooks/useMembers";
 import { useProjects } from "./hooks/useProjects";
@@ -19,13 +19,23 @@ import { AddSectionModal } from "./components/modals/AddSectionModal";
 import { AddTaskModal } from "./components/modals/AddTaskModal";
 import { LogoModal } from "./components/modals/LogoModal";
 import { MemberFormModal } from "./components/modals/MemberFormModal";
+import { ConfirmDeleteModal } from "./components/modals/ConfirmDeleteModal";
 import { NewProjectModal } from "./components/modals/NewProjectModal";
 
 export default function App({ onSignOut }: { onSignOut: () => void }) {
   const { store, loading, error, clearError } = useStore();
-  const { tasks, addTask, updateTask, updateTaskStatus } = useTasks(store);
-  const { projects, sections, otherProject, createProject, renameProject, reorderProjects, addSection } =
-    useProjects(store);
+  const { tasks, addTask, updateTask, updateTaskStatus, removeTask } = useTasks(store);
+  const {
+    projects,
+    sections,
+    otherProject,
+    createProject,
+    renameProject,
+    reorderProjects,
+    removeProject,
+    addSection,
+    removeSection,
+  } = useProjects(store);
   const { members, addMember, updateMember, removeMember } = useMembers(store);
   const workspace = useWorkspace(store);
   const sidebar = useSidebarResize();
@@ -45,6 +55,10 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
   const [showLogoEditor, setShowLogoEditor] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  // M6 削除の確認。何を消そうとしているかを持つ
+  const [deleteTarget, setDeleteTarget] = useState<
+    { kind: "project"; id: string } | { kind: "section"; id: string } | { kind: "task"; id: string } | null
+  >(null);
 
   // 初期表示は先頭の案件
   const currentProjectId = selectedProjectId ?? projects[0]?.id ?? null;
@@ -72,6 +86,41 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
     const project = createProject(name, WEB_TEMPLATE);
     openProject(project.id);
     setShowNewProject(false);
+  }
+
+  /** 削除の確認ダイアログに出す内容。対象が消えていれば閉じる */
+  function describeDeleteTarget() {
+    if (!deleteTarget) return null;
+    if (deleteTarget.kind === "project") {
+      const p = projects.find((x) => x.id === deleteTarget.id);
+      if (!p) return null;
+      return { title: "案件を削除", name: p.name, taskCount: tasks.filter((t) => t.projectId === p.id).length };
+    }
+    if (deleteTarget.kind === "section") {
+      const s = sections.find((x) => x.id === deleteTarget.id);
+      if (!s) return null;
+      return {
+        title: "案件（セクション）を削除",
+        name: s.name,
+        taskCount: tasks.filter((t) => t.sectionId === s.id).length,
+      };
+    }
+    const t = tasks.find((x) => x.id === deleteTarget.id);
+    return t ? { title: "タスクを削除", name: t.name, taskCount: undefined } : null;
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    if (deleteTarget.kind === "project") {
+      removeProject(deleteTarget.id);
+      // 消した案件を開いていたら、先頭の案件に戻す
+      if (currentProjectId === deleteTarget.id) setSelectedProjectId(null);
+    } else if (deleteTarget.kind === "section") {
+      removeSection(deleteTarget.id);
+    } else {
+      removeTask(deleteTarget.id);
+    }
+    setDeleteTarget(null);
   }
 
   /** 「その他案件」の案件（セクション）を追加する */
@@ -149,6 +198,16 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
                 <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   {projectTasks.filter((t) => t.status !== "done").length}件
                 </span>
+                {!currentProject.isOther && (
+                  <button
+                    onClick={() => setDeleteTarget({ kind: "project", id: currentProject.id })}
+                    title="この案件を削除"
+                    className="ml-2 flex items-center gap-1 text-[12px] text-muted-foreground hover:text-destructive px-2 py-1 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <Trash2 size={12} />
+                    案件を削除
+                  </button>
+                )}
               </>
             )}
             {activeNav === "mytasks" && (
@@ -213,6 +272,8 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
                 onUpdateStatus={updateTaskStatus}
                 onAddTask={setAddTaskSectionId}
                 onAddSection={() => setShowAddSection(true)}
+                onDeleteTask={(id) => setDeleteTarget({ kind: "task", id })}
+                onDeleteSection={(id) => setDeleteTarget({ kind: "section", id })}
               />
             ) : (
               <BoardView
@@ -223,6 +284,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
                 onUpdateTask={updateTask}
                 onUpdateStatus={updateTaskStatus}
                 onAddTask={() => setAddTaskSectionId("")}
+                onDeleteTask={(id) => setDeleteTarget({ kind: "task", id })}
               />
             )}
           </div>
@@ -237,6 +299,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
             onUpdateTask={updateTask}
             onUpdateStatus={updateTaskStatus}
             onOpenProject={openProject}
+            onDeleteTask={(id) => setDeleteTarget({ kind: "task", id })}
           />
         )}
 
@@ -261,6 +324,21 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
           </button>
         </div>
       )}
+
+      {(() => {
+        const d = describeDeleteTarget();
+        return (
+          d && (
+            <ConfirmDeleteModal
+              title={d.title}
+              targetName={d.name}
+              taskCount={d.taskCount}
+              onConfirm={confirmDelete}
+              onClose={() => setDeleteTarget(null)}
+            />
+          )
+        );
+      })()}
 
       {editingMember && (
         <MemberFormModal
