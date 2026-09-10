@@ -298,4 +298,17 @@ npm run lint           # ESLint
 npm run format         # Prettier
 ```
 
+### テスト
+
+```bash
+npm test               # Vitest（フックのテスト・画面操作のテスト）
+npm run test:coverage  # カバレッジ（coverage/ に HTML も出る）
+```
+
+- テストヘルパー：`src/test/factories.ts`（Task / Project / Section / Member を1行で作る）、`src/test/mockRepositories.ts`（Supabase を呼ぶ repository を丸ごとモック）
+- フックのテスト（`src/app/hooks/__tests__/`）：追加・更新・削除、テンプレート展開、並び替え、メンバー削除時の担当解除、書き込み失敗時の巻き戻し
+- 画面操作のテスト（`src/app/__tests__/App.test.tsx`）：タスク追加（M2）・完了チェック・削除（M6）、案件作成（M1）・案件削除
+- カバレッジ（2026-09-10、20テスト）：Statements 49.4% / Branches 75.6% / Functions 41.6% / Lines 49.4%（対象は `src/app` と `src/repositories`。未使用の shadcn/ui は除外）。Supabase を直接叩く `repositories/index.ts` と各セル部品（日付ピッカー等）が未カバー
+- CI（GitHub Actions）で PR ごとに typecheck / lint / format / test / build を実行
+
 DB のスキーマは `supabase/migrations/`、初期データは `supabase/seed.sql`（必須）と `supabase/seed_sample.sql`（サンプル）にあり、Supabase の SQL Editor で順に実行します。本番（Vercel）には同じ環境変数を Project Settings で設定しています。
