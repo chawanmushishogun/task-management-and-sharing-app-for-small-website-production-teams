@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckSquare, ChevronDown, ChevronRight, Plus, Users, Zap } from "lucide-react";
+import { CheckSquare, ChevronDown, ChevronRight, LogOut, Plus, Users, Zap } from "lucide-react";
 import { OTHER_PROJECT_ID } from "../data";
 import type { Project } from "../types";
 import type { NavKey } from "../navigation";
@@ -18,6 +18,7 @@ export function Sidebar({
   onSelectProject,
   onReorderProjects,
   onAddProject,
+  onSignOut,
   width,
   expanded,
   onToggleExpanded,
@@ -36,6 +37,7 @@ export function Sidebar({
   onSelectProject: (projectId: string) => void;
   onReorderProjects: (sourceId: string, targetId: string) => void;
   onAddProject: () => void;
+  onSignOut: () => void;
   width: number;
   expanded: boolean;
   onToggleExpanded: () => void;
@@ -233,6 +235,13 @@ export function Sidebar({
         >
           <Users size={15} className="flex-shrink-0" />
           {expanded && <span className="text-[13px]">メンバー</span>}
+        </button>
+        <button
+          onClick={onSignOut}
+          className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md transition-colors text-white/50 hover:text-white hover:bg-white/10"
+        >
+          <LogOut size={15} className="flex-shrink-0" />
+          {expanded && <span className="text-[13px]">ログアウト</span>}
         </button>
       </div>
 

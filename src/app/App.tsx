@@ -20,7 +20,7 @@ import { LogoModal } from "./components/modals/LogoModal";
 import { MemberFormModal } from "./components/modals/MemberFormModal";
 import { NewProjectModal } from "./components/modals/NewProjectModal";
 
-export default function App() {
+export default function App({ onSignOut }: { onSignOut: () => void }) {
   const { tasks, addTask, addTasks, updateTask, updateTaskStatus } = useTasks();
   const { projects, addProject, renameProject, reorderProjects } = useProjects();
   const { members, addMember, updateMember, removeMember } = useMembers();
@@ -99,6 +99,7 @@ export default function App() {
         onSelectProject={openProject}
         onReorderProjects={reorderProjects}
         onAddProject={() => setShowNewProject(true)}
+        onSignOut={onSignOut}
         width={sidebar.width}
         expanded={sidebar.expanded}
         onToggleExpanded={() => sidebar.setExpanded(!sidebar.expanded)}
