@@ -13,7 +13,7 @@ export function LogoModal({
 }) {
   return (
     <Modal title="ロゴを変更" onClose={onClose}>
-      <ImageDropZone value={logo} onChange={onChange} />
+      <ImageDropZone value={logo} bucket="logos" onChange={onChange} />
       <div className="flex justify-between items-center mt-4">
         <button
           onClick={() => onChange("")}
