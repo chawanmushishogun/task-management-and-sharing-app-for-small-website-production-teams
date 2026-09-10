@@ -3,7 +3,11 @@ import { X } from "lucide-react";
 
 /** 全モーダル共通の枠。背景クリックと × で閉じる */
 export function Modal({
-  title, onClose, children, width = "max-w-md", padding = "p-5",
+  title,
+  onClose,
+  children,
+  width = "max-w-md",
+  padding = "p-5",
 }: {
   title: string;
   onClose: () => void;
@@ -15,7 +19,7 @@ export function Modal({
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
       <div
         className={`bg-card rounded-xl border border-border shadow-xl w-full ${width} ${padding}`}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[15px] font-medium text-foreground">{title}</h3>

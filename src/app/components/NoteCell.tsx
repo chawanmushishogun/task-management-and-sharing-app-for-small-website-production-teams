@@ -3,7 +3,9 @@ const BASE_CLASS =
 
 /** 備考欄。multiline のときは中身に合わせて高さが伸びる */
 export function NoteCell({
-  value, onChange, multiline = false,
+  value,
+  onChange,
+  multiline = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -14,8 +16,8 @@ export function NoteCell({
       <input
         type="text"
         value={value}
-        onChange={e => onChange(e.target.value)}
-        onClick={e => e.stopPropagation()}
+        onChange={(e) => onChange(e.target.value)}
+        onClick={(e) => e.stopPropagation()}
         placeholder="メモを入力..."
         className={BASE_CLASS}
       />
@@ -25,10 +27,10 @@ export function NoteCell({
     <textarea
       rows={1}
       value={value}
-      onChange={e => onChange(e.target.value)}
-      onClick={e => e.stopPropagation()}
+      onChange={(e) => onChange(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
       // 中身に合わせて高さを追従させる（毎レンダー実行される）
-      ref={el => {
+      ref={(el) => {
         if (el) {
           el.style.height = "auto";
           el.style.height = `${el.scrollHeight}px`;

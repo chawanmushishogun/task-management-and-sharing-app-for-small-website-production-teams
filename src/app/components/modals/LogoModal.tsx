@@ -3,7 +3,9 @@ import { ImageDropZone } from "../ImageDropZone";
 
 /** ワークスペースのロゴ変更。変更は即時反映されるので保存ボタンはない */
 export function LogoModal({
-  logo, onChange, onClose,
+  logo,
+  onChange,
+  onClose,
 }: {
   logo: string;
   onChange: (url: string) => void;

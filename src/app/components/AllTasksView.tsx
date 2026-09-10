@@ -13,7 +13,12 @@ import type { Member, Project, Status, Task } from "../types";
 
 /** 全プロジェクト横断の未完了タスク一覧。ログインの概念がないので特定個人には紐づけない */
 export function AllTasksView({
-  tasks, projects, members, onUpdateTask, onUpdateStatus, onOpenProject,
+  tasks,
+  projects,
+  members,
+  onUpdateTask,
+  onUpdateStatus,
+  onOpenProject,
 }: {
   tasks: Task[];
   projects: Project[];
@@ -23,8 +28,8 @@ export function AllTasksView({
   onOpenProject: (projectId: string) => void;
 }) {
   const [assigneeFilter, setAssigneeFilter] = useState<string | "all">("all");
-  const openTasks = tasks.filter(t => !t.completed);
-  const visibleTasks = openTasks.filter(t => assigneeFilter === "all" || t.assigneeId === assigneeFilter);
+  const openTasks = tasks.filter((t) => !t.completed);
+  const visibleTasks = openTasks.filter((t) => assigneeFilter === "all" || t.assigneeId === assigneeFilter);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -41,17 +46,19 @@ export function AllTasksView({
         >
           すべて
         </button>
-        {members.map(m => (
+        {members.map((m) => (
           <button
             key={m.id}
             onClick={() => setAssigneeFilter(m.id)}
             className={`flex items-center gap-1.5 text-[13px] pl-1 pr-2.5 py-1 rounded-md transition-colors ${
-              assigneeFilter === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60"
+              assigneeFilter === m.id
+                ? "bg-muted font-medium text-foreground"
+                : "text-muted-foreground hover:bg-muted/60"
             }`}
           >
             <Avatar member={m} size="sm" />
             <span>{m.name}</span>
-            <span className="text-muted-foreground">{openTasks.filter(t => t.assigneeId === m.id).length}</span>
+            <span className="text-muted-foreground">{openTasks.filter((t) => t.assigneeId === m.id).length}</span>
           </button>
         ))}
       </div>
@@ -60,15 +67,25 @@ export function AllTasksView({
       <div className="flex-1 overflow-auto">
         <div className="flex items-center px-6 py-2 border-b border-border bg-muted/50 text-[13px] font-medium text-muted-foreground sticky top-0 z-10">
           <div className="w-52 flex-shrink-0">プロジェクト</div>
-          <div className="flex-1" style={{ minWidth: ALL_TASKS_NAME_MIN_W }}>タスク名</div>
-          <div className="flex-shrink-0" style={{ width: COL_W }}>担当者</div>
-          <div className="flex-shrink-0" style={{ width: COL_W }}>期日</div>
-          <div className="flex-shrink-0" style={{ width: COL_W }}>ステータス</div>
-          <div className="flex-shrink-0" style={{ width: COL_W }}>備考</div>
+          <div className="flex-1" style={{ minWidth: ALL_TASKS_NAME_MIN_W }}>
+            タスク名
+          </div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>
+            担当者
+          </div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>
+            期日
+          </div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>
+            ステータス
+          </div>
+          <div className="flex-shrink-0" style={{ width: COL_W }}>
+            備考
+          </div>
         </div>
 
-        {visibleTasks.map(task => {
-          const project = projects.find(p => p.id === task.projectId);
+        {visibleTasks.map((task) => {
+          const project = projects.find((p) => p.id === task.projectId);
           return (
             <div
               key={task.id}
@@ -85,13 +102,13 @@ export function AllTasksView({
                 )}
               </div>
               <div className="flex-1 pr-2" style={{ minWidth: ALL_TASKS_NAME_MIN_W }}>
-                <EditableTaskName name={task.name} onChange={name => onUpdateTask(task.id, { name })} />
+                <EditableTaskName name={task.name} onChange={(name) => onUpdateTask(task.id, { name })} />
               </div>
               <div className="flex-shrink-0" style={{ width: COL_W }}>
                 <AssigneePicker
                   members={members}
                   assigneeId={task.assigneeId}
-                  onChange={assigneeId => onUpdateTask(task.id, { assigneeId })}
+                  onChange={(assigneeId) => onUpdateTask(task.id, { assigneeId })}
                   showName
                 />
               </div>
@@ -104,10 +121,14 @@ export function AllTasksView({
                 />
               </div>
               <div className="flex-shrink-0 overflow-hidden" style={{ width: COL_W }}>
-                <StatusSelect status={task.status} onChange={status => onUpdateStatus(task.id, status)} />
+                <StatusSelect status={task.status} onChange={(status) => onUpdateStatus(task.id, status)} />
               </div>
-              <div className="flex-shrink-0 overflow-hidden" style={{ width: COL_W }} onClick={e => e.stopPropagation()}>
-                <NoteCell value={task.note} onChange={note => onUpdateTask(task.id, { note })} />
+              <div
+                className="flex-shrink-0 overflow-hidden"
+                style={{ width: COL_W }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <NoteCell value={task.note} onChange={(note) => onUpdateTask(task.id, { note })} />
               </div>
             </div>
           );

@@ -1,0 +1,7 @@
+dist
+node_modules
+coverage
+src/app/components/ui
+src/app/components/figma
+docs
+*.md

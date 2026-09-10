@@ -12,11 +12,11 @@ export function useProjects() {
   /** サイドバーのプロジェクトを並び替える。「その他案件」は対象外で常に末尾に残す。 */
   function reorderProjects(sourceId: string, targetId: string) {
     if (sourceId === targetId) return;
-    setProjects(prev => {
-      const others = prev.filter(p => p.id === OTHER_PROJECT_ID);
-      const list = prev.filter(p => p.id !== OTHER_PROJECT_ID);
-      const from = list.findIndex(p => p.id === sourceId);
-      const to = list.findIndex(p => p.id === targetId);
+    setProjects((prev) => {
+      const others = prev.filter((p) => p.id === OTHER_PROJECT_ID);
+      const list = prev.filter((p) => p.id !== OTHER_PROJECT_ID);
+      const from = list.findIndex((p) => p.id === sourceId);
+      const to = list.findIndex((p) => p.id === targetId);
       if (from === -1 || to === -1) return prev;
       const next = [...list];
       const [moved] = next.splice(from, 1);
@@ -36,16 +36,16 @@ export function useProjects() {
       taskCount,
       completedCount: 0,
     };
-    setProjects(prev => {
-      const rest = prev.filter(p => p.id !== OTHER_PROJECT_ID);
-      const other = prev.filter(p => p.id === OTHER_PROJECT_ID);
+    setProjects((prev) => {
+      const rest = prev.filter((p) => p.id !== OTHER_PROJECT_ID);
+      const other = prev.filter((p) => p.id === OTHER_PROJECT_ID);
       return [...rest, project, ...other];
     });
     return id;
   }
 
   function renameProject(id: string, name: string) {
-    setProjects(prev => prev.map(p => (p.id === id ? { ...p, name } : p)));
+    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
   }
 
   return { projects, addProject, renameProject, reorderProjects };

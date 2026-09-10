@@ -45,11 +45,11 @@ export default function App() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
-  const currentProject = projects.find(p => p.id === selectedProjectId);
+  const currentProject = projects.find((p) => p.id === selectedProjectId);
   const isOtherProject = selectedProjectId === OTHER_PROJECT_ID;
-  const projectTasks = tasks.filter(t => t.projectId === selectedProjectId);
-  const filteredTasks = projectTasks.filter(t => filterStatus === "all" || t.status === filterStatus);
-  const sections = [...new Set(projectTasks.map(t => t.section))];
+  const projectTasks = tasks.filter((t) => t.projectId === selectedProjectId);
+  const filteredTasks = projectTasks.filter((t) => filterStatus === "all" || t.status === filterStatus);
+  const sections = [...new Set(projectTasks.map((t) => t.section))];
 
   function openProject(projectId: string) {
     setSelectedProjectId(projectId);
@@ -68,7 +68,9 @@ export default function App() {
   function createWebProject(name: string) {
     const taskCount = WEB_TEMPLATE.reduce((acc, s) => acc + s.tasks.length, 0);
     const id = addProject(name, taskCount);
-    addTasks(WEB_TEMPLATE.flatMap(s => s.tasks.map(taskName => ({ projectId: id, name: taskName, section: s.section }))));
+    addTasks(
+      WEB_TEMPLATE.flatMap((s) => s.tasks.map((taskName) => ({ projectId: id, name: taskName, section: s.section }))),
+    );
     openProject(id);
     setShowNewProject(false);
   }
@@ -80,12 +82,15 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden" style={{ fontFamily: "'Zen Kaku Gothic New', sans-serif" }}>
+    <div
+      className="flex h-screen bg-background overflow-hidden"
+      style={{ fontFamily: "'Zen Kaku Gothic New', sans-serif" }}
+    >
       <Sidebar
         projects={projects}
         activeNav={activeNav}
         selectedProjectId={selectedProjectId}
-        crossTaskCount={tasks.filter(t => !t.completed).length}
+        crossTaskCount={tasks.filter((t) => !t.completed).length}
         workspaceName={workspaceName}
         workspaceLogo={workspaceLogo}
         onRenameWorkspace={setWorkspaceName}
@@ -113,9 +118,9 @@ export default function App() {
                   <input
                     autoFocus
                     value={projectDraft}
-                    onChange={e => setProjectDraft(e.target.value)}
+                    onChange={(e) => setProjectDraft(e.target.value)}
                     onBlur={() => commitProjectName(currentProject.id)}
-                    onKeyDown={e => {
+                    onKeyDown={(e) => {
                       if (isSubmitEnter(e)) commitProjectName(currentProject.id);
                       if (e.key === "Escape") setEditingProject(false);
                     }}
@@ -124,7 +129,10 @@ export default function App() {
                   />
                 ) : (
                   <h1
-                    onClick={() => { setProjectDraft(currentProject.name); setEditingProject(true); }}
+                    onClick={() => {
+                      setProjectDraft(currentProject.name);
+                      setEditingProject(true);
+                    }}
                     title="クリックして名前を変更"
                     className="font-medium text-foreground cursor-text hover:underline decoration-dotted underline-offset-4"
                     style={{ fontSize: "24px" }}
@@ -133,12 +141,20 @@ export default function App() {
                   </h1>
                 )}
                 <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  {projectTasks.filter(t => !t.completed).length}件
+                  {projectTasks.filter((t) => !t.completed).length}件
                 </span>
               </>
             )}
-            {activeNav === "mytasks" && <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>全タスク</h1>}
-            {activeNav === "members" && <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>メンバー</h1>}
+            {activeNav === "mytasks" && (
+              <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>
+                全タスク
+              </h1>
+            )}
+            {activeNav === "members" && (
+              <h1 className="font-medium text-foreground" style={{ fontSize: "24px" }}>
+                メンバー
+              </h1>
+            )}
           </div>
         </header>
 
@@ -147,10 +163,12 @@ export default function App() {
             {/* Toolbar */}
             <div className="flex items-center gap-3 px-6 py-2.5 bg-card border-b border-border flex-shrink-0">
               <div className="flex items-center rounded-md border border-border overflow-hidden">
-                {([
-                  { key: "list", label: "リスト", Icon: List },
-                  { key: "board", label: "ボード", Icon: Columns },
-                ] as const).map(({ key, label, Icon }) => (
+                {(
+                  [
+                    { key: "list", label: "リスト", Icon: List },
+                    { key: "board", label: "ボード", Icon: Columns },
+                  ] as const
+                ).map(({ key, label, Icon }) => (
                   <button
                     key={key}
                     onClick={() => setView(key)}
@@ -158,13 +176,14 @@ export default function App() {
                       view === key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
-                    <Icon size={12} />{label}
+                    <Icon size={12} />
+                    {label}
                   </button>
                 ))}
               </div>
 
               <div className="flex items-center gap-1">
-                {(["all", "todo", "in_progress", "done"] as const).map(s => (
+                {(["all", "todo", "in_progress", "done"] as const).map((s) => (
                   <button
                     key={s}
                     onClick={() => setFilterStatus(s)}
@@ -226,14 +245,20 @@ export default function App() {
         <MemberFormModal
           key={editingMember.id}
           initial={editingMember}
-          onSubmit={draft => { updateMember({ ...draft, id: editingMember.id }); setEditingMember(null); }}
+          onSubmit={(draft) => {
+            updateMember({ ...draft, id: editingMember.id });
+            setEditingMember(null);
+          }}
           onClose={() => setEditingMember(null)}
         />
       )}
 
       {showAddMember && (
         <MemberFormModal
-          onSubmit={draft => { addMember(draft); setShowAddMember(false); }}
+          onSubmit={(draft) => {
+            addMember(draft);
+            setShowAddMember(false);
+          }}
           onClose={() => setShowAddMember(false)}
         />
       )}
@@ -250,13 +275,9 @@ export default function App() {
         />
       )}
 
-      {showAddSection && (
-        <AddSectionModal onSubmit={createOtherSection} onClose={() => setShowAddSection(false)} />
-      )}
+      {showAddSection && <AddSectionModal onSubmit={createOtherSection} onClose={() => setShowAddSection(false)} />}
 
-      {showNewProject && (
-        <NewProjectModal onSubmit={createWebProject} onClose={() => setShowNewProject(false)} />
-      )}
+      {showNewProject && <NewProjectModal onSubmit={createWebProject} onClose={() => setShowNewProject(false)} />}
 
       {showLogoEditor && (
         <LogoModal logo={workspaceLogo} onChange={setWorkspaceLogo} onClose={() => setShowLogoEditor(false)} />

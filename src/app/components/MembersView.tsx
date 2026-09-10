@@ -3,7 +3,10 @@ import { Avatar } from "./Avatar";
 import type { Member } from "../types";
 
 export function MembersView({
-  members, onAdd, onEdit, onRemove,
+  members,
+  onAdd,
+  onEdit,
+  onRemove,
 }: {
   members: Member[];
   onAdd: () => void;
@@ -19,7 +22,8 @@ export function MembersView({
             onClick={onAdd}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[13px] font-medium hover:bg-primary/90 transition-colors"
           >
-            <Plus size={13} />メンバーを追加
+            <Plus size={13} />
+            メンバーを追加
           </button>
         </div>
 

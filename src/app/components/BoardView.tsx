@@ -7,7 +7,12 @@ import { isOverdue } from "../utils/date";
 import type { Member, Status, Task } from "../types";
 
 export function BoardView({
-  tasks, members, isOtherProject, onUpdateTask, onUpdateStatus, onAddTask,
+  tasks,
+  members,
+  isOtherProject,
+  onUpdateTask,
+  onUpdateStatus,
+  onAddTask,
 }: {
   tasks: Task[];
   members: Member[];
@@ -24,19 +29,19 @@ export function BoardView({
       {/* 列ごとにスクロールさせるとカード内のドロップダウンが切れるので、ボード全体を1つのスクロール領域にする。
           items-stretch(既定)で全列が最も高い列に揃い、ドロップ可能な範囲もそこまで広がる */}
       <div className="flex gap-4 p-6 min-w-max">
-        {BOARD_COLUMNS.map(col => {
-          const colTasks = tasks.filter(t => t.status === col.key);
+        {BOARD_COLUMNS.map((col) => {
+          const colTasks = tasks.filter((t) => t.status === col.key);
           return (
             <div
               key={col.key}
-              onDragOver={e => {
+              onDragOver={(e) => {
                 if (!draggingTaskId) return;
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 setDragOverColumn(col.key);
               }}
-              onDragLeave={() => setDragOverColumn(cur => (cur === col.key ? null : cur))}
-              onDrop={e => {
+              onDragLeave={() => setDragOverColumn((cur) => (cur === col.key ? null : cur))}
+              onDrop={(e) => {
                 e.preventDefault();
                 if (draggingTaskId) onUpdateStatus(draggingTaskId, col.key);
                 setDraggingTaskId(null);
@@ -52,15 +57,18 @@ export function BoardView({
                 <span className="text-[13px] text-muted-foreground ml-auto">{colTasks.length}</span>
               </div>
               <div className="space-y-2 pb-2">
-                {colTasks.map(task => (
+                {colTasks.map((task) => (
                   <div
                     key={task.id}
                     draggable
-                    onDragStart={e => {
+                    onDragStart={(e) => {
                       setDraggingTaskId(task.id);
                       e.dataTransfer.effectAllowed = "move";
                     }}
-                    onDragEnd={() => { setDraggingTaskId(null); setDragOverColumn(null); }}
+                    onDragEnd={() => {
+                      setDraggingTaskId(null);
+                      setDragOverColumn(null);
+                    }}
                     className={`relative bg-card rounded-lg p-3 border border-border hover:border-primary/30 hover:shadow-sm transition-all group ${
                       draggingTaskId === task.id ? "opacity-40" : ""
                     }`}
@@ -81,7 +89,7 @@ export function BoardView({
                         <AssigneePicker
                           members={members}
                           assigneeId={task.assigneeId}
-                          onChange={assigneeId => onUpdateTask(task.id, { assigneeId })}
+                          onChange={(assigneeId) => onUpdateTask(task.id, { assigneeId })}
                           align="right"
                         />
                       </div>
@@ -93,7 +101,8 @@ export function BoardView({
                     onClick={() => onAddTask(col.label)}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                   >
-                    <Plus size={12} />追加
+                    <Plus size={12} />
+                    追加
                   </button>
                 )}
               </div>
