@@ -1,5 +1,7 @@
 # Webサイト制作のスモールチームのための、権限設定のいらないタスク共有アプリ
 
+[![CI](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml)
+
 ## 1. サービス概要
 
 - 3〜4人のWeb制作チームが、週1回の進捗確認の会議で使う社内専用のタスク共有ツール。会議ではサイドバーから案件を1つずつ開き、その案件のタスク一覧を見ながら進める。タスクを振られた本人が、その場で担当・期日・ステータスを直せる
