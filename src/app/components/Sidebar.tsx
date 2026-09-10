@@ -6,10 +6,23 @@ import type { NavKey } from "../navigation";
 import { isSubmitEnter } from "../utils/keyboard";
 
 export function Sidebar({
-  projects, activeNav, selectedProjectId, crossTaskCount,
-  workspaceName, workspaceLogo, onRenameWorkspace, onEditLogo,
-  onSelectNav, onSelectProject, onReorderProjects, onAddProject,
-  width, expanded, onToggleExpanded, onResizeStart, resizing,
+  projects,
+  activeNav,
+  selectedProjectId,
+  crossTaskCount,
+  workspaceName,
+  workspaceLogo,
+  onRenameWorkspace,
+  onEditLogo,
+  onSelectNav,
+  onSelectProject,
+  onReorderProjects,
+  onAddProject,
+  width,
+  expanded,
+  onToggleExpanded,
+  onResizeStart,
+  resizing,
 }: {
   projects: Project[];
   activeNav: NavKey;
@@ -41,7 +54,7 @@ export function Sidebar({
     setEditingWorkspace(false);
   }
 
-  const other = projects.find(p => p.id === OTHER_PROJECT_ID);
+  const other = projects.find((p) => p.id === OTHER_PROJECT_ID);
 
   function projectButtonClass(projectId: string) {
     const selected = activeNav === "project" && selectedProjectId === projectId;
@@ -68,9 +81,11 @@ export function Sidebar({
           aria-label="ロゴを変更"
           className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden hover:opacity-80 transition-opacity"
         >
-          {workspaceLogo
-            ? <img src={workspaceLogo} alt="" className="w-full h-full object-cover" />
-            : <Zap size={14} className="text-white" />}
+          {workspaceLogo ? (
+            <img src={workspaceLogo} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <Zap size={14} className="text-white" />
+          )}
         </button>
         {expanded && (
           <div className="flex-1 min-w-0">
@@ -78,9 +93,9 @@ export function Sidebar({
               <input
                 autoFocus
                 value={workspaceDraft}
-                onChange={e => setWorkspaceDraft(e.target.value)}
+                onChange={(e) => setWorkspaceDraft(e.target.value)}
                 onBlur={commitWorkspaceName}
-                onKeyDown={e => {
+                onKeyDown={(e) => {
                   if (isSubmitEnter(e)) commitWorkspaceName();
                   if (e.key === "Escape") setEditingWorkspace(false);
                 }}
@@ -88,7 +103,10 @@ export function Sidebar({
               />
             ) : (
               <div
-                onClick={() => { setWorkspaceDraft(workspaceName); setEditingWorkspace(true); }}
+                onClick={() => {
+                  setWorkspaceDraft(workspaceName);
+                  setEditingWorkspace(true);
+                }}
                 title="クリックして名前を変更"
                 className="text-[15px] font-medium text-white truncate cursor-text hover:underline decoration-dotted underline-offset-2"
               >
@@ -110,9 +128,7 @@ export function Sidebar({
         <button
           onClick={() => onSelectNav("mytasks")}
           className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[15px] transition-colors ${
-            activeNav === "mytasks"
-              ? "bg-white/15 text-white"
-              : "text-white/60 hover:text-white hover:bg-white/10"
+            activeNav === "mytasks" ? "bg-white/15 text-white" : "text-white/60 hover:text-white hover:bg-white/10"
           }`}
         >
           <CheckSquare size={15} className="flex-shrink-0" />
@@ -146,43 +162,50 @@ export function Sidebar({
             </div>
           )}
           <div className="mt-1 space-y-0.5">
-            {projects.filter(p => p.id !== OTHER_PROJECT_ID).map(project => (
-              <button
-                key={project.id}
-                draggable={expanded}
-                onDragStart={e => {
-                  setDraggingProjectId(project.id);
-                  e.dataTransfer.effectAllowed = "move";
-                }}
-                onDragOver={e => {
-                  // preventDefault しないとドロップが受け付けられない
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = "move";
-                  if (draggingProjectId && draggingProjectId !== project.id) {
-                    setDragOverProjectId(project.id);
-                  }
-                }}
-                onDragLeave={() => setDragOverProjectId(cur => (cur === project.id ? null : cur))}
-                onDrop={e => {
-                  e.preventDefault();
-                  if (draggingProjectId) onReorderProjects(draggingProjectId, project.id);
-                  setDraggingProjectId(null);
-                  setDragOverProjectId(null);
-                }}
-                onDragEnd={() => { setDraggingProjectId(null); setDragOverProjectId(null); }}
-                onClick={() => onSelectProject(project.id)}
-                className={`${projectButtonClass(project.id)} ${draggingProjectId === project.id ? "opacity-40" : ""} ${
-                  dragOverProjectId === project.id ? "ring-1 ring-white/50" : ""
-                }`}
-              >
-                {expanded && (
-                  <>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
-                    <span className="flex-1 text-left truncate ml-2" style={{ fontSize: "14px" }}>{project.name}</span>
-                  </>
-                )}
-              </button>
-            ))}
+            {projects
+              .filter((p) => p.id !== OTHER_PROJECT_ID)
+              .map((project) => (
+                <button
+                  key={project.id}
+                  draggable={expanded}
+                  onDragStart={(e) => {
+                    setDraggingProjectId(project.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    // preventDefault しないとドロップが受け付けられない
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (draggingProjectId && draggingProjectId !== project.id) {
+                      setDragOverProjectId(project.id);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverProjectId((cur) => (cur === project.id ? null : cur))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggingProjectId) onReorderProjects(draggingProjectId, project.id);
+                    setDraggingProjectId(null);
+                    setDragOverProjectId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggingProjectId(null);
+                    setDragOverProjectId(null);
+                  }}
+                  onClick={() => onSelectProject(project.id)}
+                  className={`${projectButtonClass(project.id)} ${draggingProjectId === project.id ? "opacity-40" : ""} ${
+                    dragOverProjectId === project.id ? "ring-1 ring-white/50" : ""
+                  }`}
+                >
+                  {expanded && (
+                    <>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
+                      <span className="flex-1 text-left truncate ml-2" style={{ fontSize: "14px" }}>
+                        {project.name}
+                      </span>
+                    </>
+                  )}
+                </button>
+              ))}
             {/* その他案件 — 区切り線の後に固定表示 */}
             {other && (
               <div className="border-t border-white/10 pt-1 mt-1">

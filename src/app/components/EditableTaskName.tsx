@@ -10,24 +10,33 @@ export function EditableTaskName({ name, onChange }: { name: string; onChange: (
       <span
         className="text-foreground hover:underline decoration-dotted underline-offset-2 cursor-text font-medium"
         style={{ fontSize: "15px" }}
-        onClick={e => { e.stopPropagation(); setDraft(name); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setDraft(name);
+        }}
       >
         {name}
       </span>
     );
   }
 
-  const commit = () => { onChange(draft); setDraft(null); };
+  const commit = () => {
+    onChange(draft);
+    setDraft(null);
+  };
   return (
     <input
       autoFocus
       className="w-full text-foreground bg-transparent outline-none border-b border-primary font-medium"
       style={{ fontSize: "15px" }}
       value={draft}
-      onChange={e => setDraft(e.target.value)}
+      onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
-      onKeyDown={e => { if (isSubmitEnter(e)) commit(); e.stopPropagation(); }}
-      onClick={e => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (isSubmitEnter(e)) commit();
+        e.stopPropagation();
+      }}
+      onClick={(e) => e.stopPropagation()}
     />
   );
 }

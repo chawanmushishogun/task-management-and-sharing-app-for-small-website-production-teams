@@ -7,7 +7,11 @@ import type { Member } from "../types";
  * 一覧では名前つき、ボードのカードではアイコンのみで使う。
  */
 export function AssigneePicker({
-  members, assigneeId, onChange, showName = false, align = "left",
+  members,
+  assigneeId,
+  onChange,
+  showName = false,
+  align = "left",
 }: {
   members: Member[];
   assigneeId: string | null;
@@ -17,7 +21,7 @@ export function AssigneePicker({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const assignee = members.find(m => m.id === assigneeId);
+  const assignee = members.find((m) => m.id === assigneeId);
 
   useEffect(() => {
     if (!open) return;
@@ -35,14 +39,16 @@ export function AssigneePicker({
 
   return (
     // overflow-hidden を付けると絶対配置のドロップダウンが切れるので付けない
-    <div ref={ref} className="relative" onClick={e => e.stopPropagation()}>
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1 px-1 py-0.5 rounded hover:bg-muted transition-colors"
       >
-        {assignee
-          ? <Avatar member={assignee} size="sm" showName={showName} />
-          : <span className="text-[13px] text-muted-foreground hover:text-foreground">未割り当て</span>}
+        {assignee ? (
+          <Avatar member={assignee} size="sm" showName={showName} />
+        ) : (
+          <span className="text-[13px] text-muted-foreground hover:text-foreground">未割り当て</span>
+        )}
       </button>
       {open && (
         <div
@@ -54,7 +60,7 @@ export function AssigneePicker({
           >
             未割り当て
           </button>
-          {members.map(m => (
+          {members.map((m) => (
             <button
               key={m.id}
               className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-foreground hover:bg-muted transition-colors"

@@ -7,7 +7,9 @@ const EMPTY: Omit<Member, "id"> = { name: "", initials: "", color: "#3b82f6", ro
 
 /** メンバーの追加と編集で共用するフォーム。initial を渡すと編集モードになる */
 export function MemberFormModal({
-  initial, onSubmit, onClose,
+  initial,
+  onSubmit,
+  onClose,
 }: {
   initial?: Member;
   onSubmit: (draft: Omit<Member, "id">) => void;
@@ -24,7 +26,7 @@ export function MemberFormModal({
           <input
             className="w-full text-[15px] border border-border rounded-lg px-3 py-2 bg-background outline-none focus:border-primary"
             value={draft.name}
-            onChange={e => setDraft({ ...draft, name: e.target.value })}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             placeholder="例）山田 太郎"
           />
         </div>
@@ -32,7 +34,7 @@ export function MemberFormModal({
           <label className="text-[13px] text-muted-foreground block mb-2">
             プロフィール画像{isEdit ? "" : "（任意）"}
           </label>
-          <ImageDropZone value={draft.avatarUrl} onChange={avatarUrl => setDraft({ ...draft, avatarUrl })} />
+          <ImageDropZone value={draft.avatarUrl} onChange={(avatarUrl) => setDraft({ ...draft, avatarUrl })} />
         </div>
         <div>
           <label className="text-[13px] text-muted-foreground block mb-1">カラー</label>
@@ -41,7 +43,7 @@ export function MemberFormModal({
               type="color"
               className="w-8 h-8 rounded cursor-pointer border border-border"
               value={draft.color}
-              onChange={e => setDraft({ ...draft, color: e.target.value })}
+              onChange={(e) => setDraft({ ...draft, color: e.target.value })}
             />
             <span className="text-[13px] text-muted-foreground">{draft.color}</span>
           </div>

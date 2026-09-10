@@ -4,7 +4,10 @@ import { toDateStr } from "../utils/date";
 
 // ── DateRangePicker ──────────────────────────────────────────
 export function DateRangePicker({
-  startDate, endDate, onChange, onClose,
+  startDate,
+  endDate,
+  onChange,
+  onClose,
 }: {
   startDate: string | null;
   endDate: string | null;
@@ -12,12 +15,8 @@ export function DateRangePicker({
   onClose: () => void;
 }) {
   const today = new Date();
-  const [viewYear, setViewYear] = useState(
-    startDate ? new Date(startDate).getFullYear() : today.getFullYear()
-  );
-  const [viewMonth, setViewMonth] = useState(
-    startDate ? new Date(startDate).getMonth() : today.getMonth()
-  );
+  const [viewYear, setViewYear] = useState(startDate ? new Date(startDate).getFullYear() : today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(startDate ? new Date(startDate).getMonth() : today.getMonth());
   const [selecting, setSelecting] = useState<"start" | "end">("start");
   const [tempStart, setTempStart] = useState<string | null>(startDate);
   const [tempEnd, setTempEnd] = useState<string | null>(endDate);
@@ -32,12 +31,16 @@ export function DateRangePicker({
   }, [onClose]);
 
   const prevMonth = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
-    else setViewMonth(m => m - 1);
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear((y) => y - 1);
+    } else setViewMonth((m) => m - 1);
   };
   const nextMonth = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
-    else setViewMonth(m => m + 1);
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear((y) => y + 1);
+    } else setViewMonth((m) => m + 1);
   };
 
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
@@ -76,20 +79,26 @@ export function DateRangePicker({
     const d = toDateStr(new Date(viewYear, viewMonth, day));
     return d > tempStart && d < tempEnd;
   }
-  function isStart(day: number) { return toDateStr(new Date(viewYear, viewMonth, day)) === tempStart; }
-  function isEnd(day: number) { return toDateStr(new Date(viewYear, viewMonth, day)) === tempEnd; }
+  function isStart(day: number) {
+    return toDateStr(new Date(viewYear, viewMonth, day)) === tempStart;
+  }
+  function isEnd(day: number) {
+    return toDateStr(new Date(viewYear, viewMonth, day)) === tempEnd;
+  }
 
   return (
     <div
       ref={ref}
       className="absolute z-50 bg-card border border-border rounded-xl shadow-xl p-4 w-72 mt-1"
-      onClick={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-3">
         <button onClick={prevMonth} className="p-1 rounded hover:bg-muted transition-colors">
           <ChevronLeft size={14} className="text-muted-foreground" />
         </button>
-        <span className="text-[13px] font-medium text-foreground">{viewYear}年 {viewMonth + 1}月</span>
+        <span className="text-[13px] font-medium text-foreground">
+          {viewYear}年 {viewMonth + 1}月
+        </span>
         <div className="flex items-center gap-1">
           <button onClick={nextMonth} className="p-1 rounded hover:bg-muted transition-colors">
             <ChevronRight size={14} className="text-muted-foreground" />
@@ -100,8 +109,10 @@ export function DateRangePicker({
         </div>
       </div>
       <div className="grid grid-cols-7 mb-1">
-        {["月","火","水","木","金","土","日"].map(d => (
-          <div key={d} className="text-center text-[13px] text-muted-foreground py-1">{d}</div>
+        {["月", "火", "水", "木", "金", "土", "日"].map((d) => (
+          <div key={d} className="text-center text-[13px] text-muted-foreground py-1">
+            {d}
+          </div>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -111,8 +122,11 @@ export function DateRangePicker({
               <button
                 onClick={() => handleDayClick(day)}
                 className={`w-7 h-7 rounded text-[13px] font-medium transition-colors
-                  ${isStart(day) || isEnd(day) || inRange(day) ? "bg-primary/20 text-primary" :
-                    "hover:bg-muted text-foreground"}`}
+                  ${
+                    isStart(day) || isEnd(day) || inRange(day)
+                      ? "bg-primary/20 text-primary"
+                      : "hover:bg-muted text-foreground"
+                  }`}
               >
                 {day}
               </button>
@@ -125,7 +139,10 @@ export function DateRangePicker({
           {selecting === "start" ? "開始日を選択" : "終了日を選択"}
         </span>
         <button
-          onClick={() => { onChange(null, null); onClose(); }}
+          onClick={() => {
+            onChange(null, null);
+            onClose();
+          }}
           className="text-[13px] text-muted-foreground hover:text-foreground transition-colors"
         >
           クリア

@@ -37,7 +37,7 @@ export function useTasks() {
   const [tasks, setTasks] = useLocalStorage<Task[]>("tasks", INITIAL_TASKS);
 
   function updateTask(id: string, patch: Partial<Task>) {
-    setTasks(prev => prev.map(t => (t.id === id ? { ...t, ...patch } : t)));
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   }
 
   /** ステータスと completed は常に連動させる。片方だけ更新しないこと */
@@ -46,11 +46,11 @@ export function useTasks() {
   }
 
   function addTask(input: NewTaskInput) {
-    setTasks(prev => [...prev, createTask(input)]);
+    setTasks((prev) => [...prev, createTask(input)]);
   }
 
   function addTasks(inputs: NewTaskInput[]) {
-    setTasks(prev => [...prev, ...inputs.map(createTask)]);
+    setTasks((prev) => [...prev, ...inputs.map(createTask)]);
   }
 
   return { tasks, addTask, addTasks, updateTask, updateTaskStatus };

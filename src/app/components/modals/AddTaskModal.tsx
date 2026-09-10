@@ -3,7 +3,10 @@ import { Modal } from "../Modal";
 import { isSubmitEnter } from "../../utils/keyboard";
 
 export function AddTaskModal({
-  sections, defaultSection, onSubmit, onClose,
+  sections,
+  defaultSection,
+  onSubmit,
+  onClose,
 }: {
   sections: string[];
   defaultSection: string;
@@ -25,21 +28,28 @@ export function AddTaskModal({
         className="w-full text-[15px] text-foreground bg-muted rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-primary mb-3 placeholder-muted-foreground"
         placeholder="タスク名を入力..."
         value={name}
-        onChange={e => setName(e.target.value)}
-        onKeyDown={e => isSubmitEnter(e) && submit()}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => isSubmitEnter(e) && submit()}
       />
       <div className="flex items-center gap-2 mb-4">
         <select
           value={section}
-          onChange={e => setSection(e.target.value)}
+          onChange={(e) => setSection(e.target.value)}
           className="text-[13px] bg-muted text-foreground rounded-md px-2 py-1.5 outline-none border-0"
         >
           <option value="">セクション選択</option>
-          {sections.map(s => <option key={s} value={s}>{s}</option>)}
+          {sections.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
         </select>
       </div>
       <div className="flex justify-end gap-2">
-        <button onClick={onClose} className="text-[13px] px-3 py-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors">
+        <button
+          onClick={onClose}
+          className="text-[13px] px-3 py-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"
+        >
           キャンセル
         </button>
         <button
