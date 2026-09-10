@@ -16,6 +16,20 @@
 
 ---
 
+## ER図
+
+![ER図](docs/er-diagram.png)
+
+- 画像：[docs/er-diagram.png](docs/er-diagram.png)／編集用ファイル（Draw.io）：[docs/er-diagram.drawio](docs/er-diagram.drawio)
+- テーブルは5つ。`projects`（案件）→ `sections`（工程）→ `tasks`（タスク）が1対多で連なり、`tasks.assignee_id` が `members`（担当者）を参照する。`workspaces` はワークスペース名とロゴを持つ1行だけのテーブルで、他からは参照しない
+- セクションはこれまでタスクの文字列項目だったが、M3「セクションを追加」で作られる実体であり、タスクを全部消してもセクションを残す必要があるため、独立したテーブルにした
+- 完了フラグ・タグ・サブタスク・コメントなど、画面で使っていない項目はテーブルに持たない。完了かどうかは `status = 'done'` で判定する
+- ログインは Supabase Auth のチーム共有アカウント1件（`auth.users`）で行う。権限を持たない設計のため、アプリのテーブルから `auth.users` を参照しない
+- RLS：全テーブルで有効にし、ポリシーは「`authenticated` ロールのみ読み書き可」の1本。`anon` には何も許可しない（懸念点②参照）
+- 削除の連鎖：案件を削除すると中の工程・タスクも消える（ON DELETE CASCADE）。メンバーを削除してもタスクは残り、担当が未定（NULL）に戻る（ON DELETE SET NULL）
+
+---
+
 ## 2. このアイデアはどこから生まれたか
 
 ### 2-1. きっかけとなった体験・感情
