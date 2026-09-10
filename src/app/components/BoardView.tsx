@@ -10,7 +10,6 @@ export function BoardView({
   tasks,
   sections,
   members,
-  isOtherProject,
   onUpdateTask,
   onUpdateStatus,
   onAddTask,
@@ -19,7 +18,6 @@ export function BoardView({
   tasks: Task[];
   sections: Section[];
   members: Member[];
-  isOtherProject: boolean;
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onAddTask: () => void;
@@ -109,15 +107,13 @@ export function BoardView({
                     </div>
                   </div>
                 ))}
-                {isOtherProject && (
-                  <button
-                    onClick={onAddTask}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                  >
-                    <Plus size={12} />
-                    追加
-                  </button>
-                )}
+                <button
+                  onClick={onAddTask}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border text-[13px] text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                >
+                  <Plus size={12} />
+                  追加
+                </button>
               </div>
             </div>
           );

@@ -24,7 +24,7 @@ export function ListView({
   tasks: Task[];
   sections: Section[];
   members: Member[];
-  /** 「その他案件」ではセクションとタスクを自由に足せる。Web制作プロジェクトはテンプレート固定 */
+  /** 「その他案件」ではセクション（＝案件）を足したり消したりできる。タスクの追加はどの案件でもできる */
   isOtherProject: boolean;
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
@@ -168,7 +168,7 @@ export function ListView({
                 </div>
               ))}
 
-            {!isCollapsed && isOtherProject && (
+            {!isCollapsed && (
               <button
                 onClick={() => onAddTask(section.id)}
                 className="flex items-center gap-2 px-6 py-2 text-[13px] text-muted-foreground hover:text-primary transition-colors w-full text-left"
