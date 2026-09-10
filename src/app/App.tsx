@@ -255,7 +255,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
           role="alert"
           className="fixed bottom-4 right-4 z-50 max-w-md bg-destructive text-white text-[13px] rounded-lg shadow-lg px-4 py-3 flex items-start gap-3"
         >
-          <span className="flex-1">保存に失敗しました：{error}</span>
+          <span className="flex-1">エラー：{error}</span>
           <button onClick={clearError} className="opacity-80 hover:opacity-100">
             閉じる
           </button>

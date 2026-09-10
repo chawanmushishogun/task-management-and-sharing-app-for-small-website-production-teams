@@ -12,6 +12,25 @@ export interface Store {
 
 const EMPTY: Snapshot = { workspace: null, members: [], projects: [], sections: [], tasks: [] };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * ログイン直後は発行されたばかりのトークンを API 側が「未来の発行時刻」と判定して
+ * 一時的に失敗することがある（サーバー間の時計のズレ）。少し待って読み直す。
+ */
+async function loadWithRetry(attempts = 3): Promise<Snapshot> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await loadSnapshot();
+    } catch (e) {
+      lastError = e;
+      await sleep(1000 * (i + 1));
+    }
+  }
+  throw lastError;
+}
+
 /**
  * アプリ全体のデータを1つの Snapshot として持つ。
  * 初期表示で loadSnapshot を1回呼び、以降の更新は楽観的に行う（last write wins）。
@@ -23,7 +42,7 @@ export function useStore() {
 
   const reload = useCallback(
     () =>
-      loadSnapshot()
+      loadWithRetry()
         .then((snapshot) => {
           setData(snapshot);
           setError(null);
