@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml)
 
+- 公開URL（Vercel）：https://task-management-and-sharing-app-for.vercel.app/ ※チーム共有アカウントでログインが必要
+
 ## 1. サービス概要
 
 - 3〜4人のWeb制作チームが、週1回の進捗確認の会議で使う社内専用のタスク共有ツール。会議ではサイドバーから案件を1つずつ開き、その案件のタスク一覧を見ながら進める。タスクを振られた本人が、その場で担当・期日・ステータスを直せる
@@ -288,4 +290,12 @@ npm run typecheck  # 型チェックのみ
 npm run build      # 型チェック後、本番ビルド
 ```
 
-現時点ではサーバーを使用していないため、データはブラウザのlocalStorageに保存されます。
+データは Supabase に保存します。ローカルで動かすには `.env.example` を `.env` にコピーし、Supabase の Project URL と Publishable key を設定してください。
+
+```bash
+cp .env.example .env   # VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY を設定
+npm run lint           # ESLint
+npm run format         # Prettier
+```
+
+DB のスキーマは `supabase/migrations/`、初期データは `supabase/seed.sql`（必須）と `supabase/seed_sample.sql`（サンプル）にあり、Supabase の SQL Editor で順に実行します。本番（Vercel）には同じ環境変数を Project Settings で設定しています。
