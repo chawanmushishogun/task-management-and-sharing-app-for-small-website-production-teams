@@ -7,10 +7,11 @@ import { NoteCell } from "./NoteCell";
 import { StatusSelect } from "./StatusSelect";
 import { COL_W, TASK_NAME_MIN_W, TASK_NAME_PL } from "../constants";
 import { isOverdue } from "../utils/date";
-import type { Member, Status, Task } from "../types";
+import type { Member, Section, Status, Task } from "../types";
 
 export function ListView({
   tasks,
+  sections,
   members,
   isOtherProject,
   onUpdateTask,
@@ -19,16 +20,16 @@ export function ListView({
   onAddSection,
 }: {
   tasks: Task[];
+  sections: Section[];
   members: Member[];
   /** 「その他案件」ではセクションとタスクを自由に足せる。Web制作プロジェクトはテンプレート固定 */
   isOtherProject: boolean;
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onUpdateStatus: (id: string, status: Status) => void;
-  onAddTask: (section: string) => void;
+  onAddTask: (sectionId: string) => void;
   onAddSection: () => void;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const sections = [...new Set(tasks.map((t) => t.section))];
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -55,14 +56,14 @@ export function ListView({
       </div>
 
       {sections.map((section) => {
-        const sectionTasks = tasks.filter((t) => t.section === section);
-        const isCollapsed = collapsed[section] === true;
+        const sectionTasks = tasks.filter((t) => t.sectionId === section.id);
+        const isCollapsed = collapsed[section.id] === true;
         return (
-          <div key={section} className="my-[20px]">
+          <div key={section.id} className="my-[20px]">
             {/* Section header */}
             <div
               className="flex items-center gap-2 px-6 py-2 cursor-pointer hover:bg-muted/30 group"
-              onClick={() => setCollapsed((prev) => ({ ...prev, [section]: !prev[section] }))}
+              onClick={() => setCollapsed((prev) => ({ ...prev, [section.id]: !prev[section.id] }))}
             >
               {isCollapsed ? (
                 <ChevronRight size={13} className="text-muted-foreground" />
@@ -70,7 +71,7 @@ export function ListView({
                 <ChevronDown size={13} className="text-muted-foreground" />
               )}
               <span className="font-medium text-foreground" style={{ fontSize: "20px" }}>
-                {section}
+                {section.name}
               </span>
             </div>
 
@@ -118,7 +119,7 @@ export function ListView({
                     <DueDateCell
                       startDate={task.startDate}
                       endDate={task.endDate}
-                      overdue={isOverdue(task.endDate) && !task.completed}
+                      overdue={isOverdue(task.endDate) && task.status !== "done"}
                       onChange={(startDate, endDate) => onUpdateTask(task.id, { startDate, endDate })}
                     />
                   </div>
@@ -142,7 +143,7 @@ export function ListView({
 
             {!isCollapsed && isOtherProject && (
               <button
-                onClick={() => onAddTask(section)}
+                onClick={() => onAddTask(section.id)}
                 className="flex items-center gap-2 px-6 py-2 text-[13px] text-muted-foreground hover:text-primary transition-colors w-full text-left"
               >
                 <Plus size={12} />
@@ -153,7 +154,7 @@ export function ListView({
         );
       })}
 
-      {isOtherProject && tasks.length > 0 && (
+      {isOtherProject && (
         <div className="px-6 py-3 border-t border-border/50">
           <button
             onClick={onAddSection}

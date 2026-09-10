@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { Modal } from "../Modal";
 import { isSubmitEnter } from "../../utils/keyboard";
+import type { Section } from "../../types";
 
 export function AddTaskModal({
   sections,
-  defaultSection,
+  defaultSectionId,
   onSubmit,
   onClose,
 }: {
-  sections: string[];
-  defaultSection: string;
-  onSubmit: (name: string, section: string) => void;
+  sections: Section[];
+  defaultSectionId: string | null;
+  onSubmit: (name: string, sectionId: string) => void;
   onClose: () => void;
 }) {
   const [name, setName] = useState("");
-  const [section, setSection] = useState(defaultSection);
+  const [sectionId, setSectionId] = useState(defaultSectionId ?? sections[0]?.id ?? "");
 
   const submit = () => {
-    if (!name.trim()) return;
-    onSubmit(name.trim(), section || sections[0] || "その他");
+    if (!name.trim() || !sectionId) return;
+    onSubmit(name.trim(), sectionId);
   };
 
   return (
@@ -33,14 +34,13 @@ export function AddTaskModal({
       />
       <div className="flex items-center gap-2 mb-4">
         <select
-          value={section}
-          onChange={(e) => setSection(e.target.value)}
+          value={sectionId}
+          onChange={(e) => setSectionId(e.target.value)}
           className="text-[13px] bg-muted text-foreground rounded-md px-2 py-1.5 outline-none border-0"
         >
-          <option value="">セクション選択</option>
           {sections.map((s) => (
-            <option key={s} value={s}>
-              {s}
+            <option key={s.id} value={s.id}>
+              {s.name}
             </option>
           ))}
         </select>
@@ -54,7 +54,7 @@ export function AddTaskModal({
         </button>
         <button
           onClick={submit}
-          disabled={!name.trim()}
+          disabled={!name.trim() || !sectionId}
           className="text-[13px] px-4 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
         >
           タスクを追加

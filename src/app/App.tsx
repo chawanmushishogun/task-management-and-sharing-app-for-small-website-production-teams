@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Columns, List } from "lucide-react";
-import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useStore } from "./hooks/useStore";
 import { useMembers } from "./hooks/useMembers";
 import { useProjects } from "./hooks/useProjects";
+import { useTasks } from "./hooks/useTasks";
+import { useWorkspace } from "./hooks/useWorkspace";
 import { useSidebarResize } from "./hooks/useSidebarResize";
 import { isSubmitEnter } from "./utils/keyboard";
-import { useTasks } from "./hooks/useTasks";
-import { OTHER_PROJECT_ID, STATUS_CONFIG, WEB_TEMPLATE } from "./data";
+import { STATUS_CONFIG, WEB_TEMPLATE } from "./data";
 import type { Member, Status } from "./types";
 import type { NavKey, ProjectView } from "./navigation";
 import { Sidebar } from "./components/Sidebar";
@@ -21,35 +22,37 @@ import { MemberFormModal } from "./components/modals/MemberFormModal";
 import { NewProjectModal } from "./components/modals/NewProjectModal";
 
 export default function App({ onSignOut }: { onSignOut: () => void }) {
-  const { tasks, addTask, addTasks, updateTask, updateTaskStatus } = useTasks();
-  const { projects, addProject, renameProject, reorderProjects } = useProjects();
-  const { members, addMember, updateMember, removeMember } = useMembers();
+  const { store, loading, error, clearError } = useStore();
+  const { tasks, addTask, updateTask, updateTaskStatus } = useTasks(store);
+  const { projects, sections, otherProject, createProject, renameProject, reorderProjects, addSection } =
+    useProjects(store);
+  const { members, addMember, updateMember, removeMember } = useMembers(store);
+  const workspace = useWorkspace(store);
   const sidebar = useSidebarResize();
 
-  const [workspaceName, setWorkspaceName] = useLocalStorage<string>("workspaceName", "Acme Corp");
-  const [workspaceLogo, setWorkspaceLogo] = useLocalStorage<string>("workspaceLogo", "");
-
   const [activeNav, setActiveNav] = useState<NavKey>("project");
-  const [selectedProjectId, setSelectedProjectId] = useState("p1");
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [view, setView] = useState<ProjectView>("list");
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
 
   const [editingProject, setEditingProject] = useState(false);
   const [projectDraft, setProjectDraft] = useState("");
 
-  // モーダルの開閉。addTaskSection は「どのセクションに追加するか」を兼ねる
-  const [addTaskSection, setAddTaskSection] = useState<string | null>(null);
+  // モーダルの開閉。addTaskSectionId は「どのセクションに追加するか」を兼ねる（"" は未指定）
+  const [addTaskSectionId, setAddTaskSectionId] = useState<string | null>(null);
   const [showAddSection, setShowAddSection] = useState(false);
   const [showNewProject, setShowNewProject] = useState(false);
   const [showLogoEditor, setShowLogoEditor] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
-  const currentProject = projects.find((p) => p.id === selectedProjectId);
-  const isOtherProject = selectedProjectId === OTHER_PROJECT_ID;
-  const projectTasks = tasks.filter((t) => t.projectId === selectedProjectId);
+  // 初期表示は先頭の案件
+  const currentProjectId = selectedProjectId ?? projects[0]?.id ?? null;
+  const currentProject = projects.find((p) => p.id === currentProjectId);
+  const isOtherProject = currentProject?.isOther ?? false;
+  const projectTasks = tasks.filter((t) => t.projectId === currentProjectId);
   const filteredTasks = projectTasks.filter((t) => filterStatus === "all" || t.status === filterStatus);
-  const sections = [...new Set(projectTasks.map((t) => t.section))];
+  const projectSections = sections.filter((s) => s.projectId === currentProjectId);
 
   function openProject(projectId: string) {
     setSelectedProjectId(projectId);
@@ -66,19 +69,21 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
 
   /** テンプレートのセクション・タスクごと Webサイト制作プロジェクトを作る */
   function createWebProject(name: string) {
-    const taskCount = WEB_TEMPLATE.reduce((acc, s) => acc + s.tasks.length, 0);
-    const id = addProject(name, taskCount);
-    addTasks(
-      WEB_TEMPLATE.flatMap((s) => s.tasks.map((taskName) => ({ projectId: id, name: taskName, section: s.section }))),
-    );
-    openProject(id);
+    const project = createProject(name, WEB_TEMPLATE);
+    openProject(project.id);
     setShowNewProject(false);
   }
 
-  /** 「その他案件」の案件（セクション）は、プレースホルダのタスクを1件作ることで生やす */
-  function createOtherSection(section: string) {
-    addTask({ projectId: OTHER_PROJECT_ID, name: "タスクを追加", section });
+  /** 「その他案件」の案件（セクション）を追加する */
+  function createOtherSection(name: string) {
+    if (otherProject) addSection(otherProject.id, name);
     setShowAddSection(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[13px] text-muted-foreground">読み込み中…</div>
+    );
   }
 
   return (
@@ -89,11 +94,11 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
       <Sidebar
         projects={projects}
         activeNav={activeNav}
-        selectedProjectId={selectedProjectId}
-        crossTaskCount={tasks.filter((t) => !t.completed).length}
-        workspaceName={workspaceName}
-        workspaceLogo={workspaceLogo}
-        onRenameWorkspace={setWorkspaceName}
+        selectedProjectId={currentProjectId ?? ""}
+        crossTaskCount={tasks.filter((t) => t.status !== "done").length}
+        workspaceName={workspace.name}
+        workspaceLogo={workspace.logoUrl}
+        onRenameWorkspace={workspace.rename}
         onEditLogo={() => setShowLogoEditor(true)}
         onSelectNav={setActiveNav}
         onSelectProject={openProject}
@@ -142,7 +147,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
                   </h1>
                 )}
                 <span className="text-[13px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  {projectTasks.filter((t) => !t.completed).length}件
+                  {projectTasks.filter((t) => t.status !== "done").length}件
                 </span>
               </>
             )}
@@ -201,21 +206,23 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
             {view === "list" ? (
               <ListView
                 tasks={filteredTasks}
+                sections={projectSections}
                 members={members}
                 isOtherProject={isOtherProject}
                 onUpdateTask={updateTask}
                 onUpdateStatus={updateTaskStatus}
-                onAddTask={setAddTaskSection}
+                onAddTask={setAddTaskSectionId}
                 onAddSection={() => setShowAddSection(true)}
               />
             ) : (
               <BoardView
                 tasks={filteredTasks}
+                sections={projectSections}
                 members={members}
                 isOtherProject={isOtherProject}
                 onUpdateTask={updateTask}
                 onUpdateStatus={updateTaskStatus}
-                onAddTask={setAddTaskSection}
+                onAddTask={() => setAddTaskSectionId("")}
               />
             )}
           </div>
@@ -225,6 +232,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
           <AllTasksView
             tasks={tasks}
             projects={projects}
+            sections={sections}
             members={members}
             onUpdateTask={updateTask}
             onUpdateStatus={updateTaskStatus}
@@ -241,6 +249,18 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
           />
         )}
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          className="fixed bottom-4 right-4 z-50 max-w-md bg-destructive text-white text-[13px] rounded-lg shadow-lg px-4 py-3 flex items-start gap-3"
+        >
+          <span className="flex-1">保存に失敗しました：{error}</span>
+          <button onClick={clearError} className="opacity-80 hover:opacity-100">
+            閉じる
+          </button>
+        </div>
+      )}
 
       {editingMember && (
         <MemberFormModal
@@ -264,15 +284,15 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
         />
       )}
 
-      {addTaskSection !== null && (
+      {addTaskSectionId !== null && currentProjectId && (
         <AddTaskModal
-          sections={sections}
-          defaultSection={addTaskSection}
-          onSubmit={(name, section) => {
-            addTask({ projectId: selectedProjectId, name, section });
-            setAddTaskSection(null);
+          sections={projectSections}
+          defaultSectionId={addTaskSectionId || null}
+          onSubmit={(name, sectionId) => {
+            addTask({ projectId: currentProjectId, sectionId, name });
+            setAddTaskSectionId(null);
           }}
-          onClose={() => setAddTaskSection(null)}
+          onClose={() => setAddTaskSectionId(null)}
         />
       )}
 
@@ -281,7 +301,7 @@ export default function App({ onSignOut }: { onSignOut: () => void }) {
       {showNewProject && <NewProjectModal onSubmit={createWebProject} onClose={() => setShowNewProject(false)} />}
 
       {showLogoEditor && (
-        <LogoModal logo={workspaceLogo} onChange={setWorkspaceLogo} onClose={() => setShowLogoEditor(false)} />
+        <LogoModal logo={workspace.logoUrl} onChange={workspace.setLogo} onClose={() => setShowLogoEditor(false)} />
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { CheckSquare, ChevronDown, ChevronRight, LogOut, Plus, Users, Zap } from "lucide-react";
-import { OTHER_PROJECT_ID } from "../data";
 import type { Project } from "../types";
 import type { NavKey } from "../navigation";
 import { isSubmitEnter } from "../utils/keyboard";
@@ -56,7 +55,7 @@ export function Sidebar({
     setEditingWorkspace(false);
   }
 
-  const other = projects.find((p) => p.id === OTHER_PROJECT_ID);
+  const other = projects.find((p) => p.isOther);
 
   function projectButtonClass(projectId: string) {
     const selected = activeNav === "project" && selectedProjectId === projectId;
@@ -165,7 +164,7 @@ export function Sidebar({
           )}
           <div className="mt-1 space-y-0.5">
             {projects
-              .filter((p) => p.id !== OTHER_PROJECT_ID)
+              .filter((p) => !p.isOther)
               .map((project) => (
                 <button
                   key={project.id}

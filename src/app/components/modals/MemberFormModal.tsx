@@ -3,7 +3,7 @@ import { Modal } from "../Modal";
 import { ImageDropZone } from "../ImageDropZone";
 import type { Member } from "../../types";
 
-const EMPTY: Omit<Member, "id"> = { name: "", initials: "", color: "#3b82f6", role: "", avatarUrl: "" };
+const EMPTY: Omit<Member, "id"> = { name: "", color: "#3b82f6", avatarUrl: null };
 
 /** メンバーの追加と編集で共用するフォーム。initial を渡すと編集モードになる */
 export function MemberFormModal({
@@ -34,7 +34,10 @@ export function MemberFormModal({
           <label className="text-[13px] text-muted-foreground block mb-2">
             プロフィール画像{isEdit ? "" : "（任意）"}
           </label>
-          <ImageDropZone value={draft.avatarUrl} onChange={(avatarUrl) => setDraft({ ...draft, avatarUrl })} />
+          <ImageDropZone
+            value={draft.avatarUrl ?? ""}
+            onChange={(avatarUrl) => setDraft({ ...draft, avatarUrl: avatarUrl || null })}
+          />
         </div>
         <div>
           <label className="text-[13px] text-muted-foreground block mb-1">カラー</label>
