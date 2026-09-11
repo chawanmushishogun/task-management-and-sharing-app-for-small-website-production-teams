@@ -23,7 +23,7 @@ export function LoginView({ onSignIn }: { onSignIn: (email: string, password: st
       className="min-h-screen flex items-center justify-center bg-background px-4"
       style={{ fontFamily: "'Zen Kaku Gothic New', sans-serif" }}
     >
-      <form onSubmit={submit} className="w-full max-w-sm bg-card rounded-2xl shadow-xl border border-border p-8">
+      <form onSubmit={submit} className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border p-8">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white">
             <Zap size={18} />
