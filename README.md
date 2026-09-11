@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/chawanmushishogun/task-management-and-sharing-app-for-small-website-production-teams/actions/workflows/ci.yml)
 
-- サービス名：**タスク共有ボード**
+- サービス名：**Web制作タスク共有ボード**
 - 公開URL（Vercel）：https://task-management-and-sharing-app-for.vercel.app/ ※チーム共有アカウントでログインが必要
 
 ## 1. サービス概要
