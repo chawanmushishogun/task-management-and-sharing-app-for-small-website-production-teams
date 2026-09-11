@@ -29,7 +29,7 @@ export function LoginView({ onSignIn }: { onSignIn: (email: string, password: st
             <Zap size={18} />
           </div>
           <div>
-            <h1 className="text-[17px] font-medium text-foreground leading-tight">タスク共有アプリ</h1>
+            <h1 className="text-[17px] font-medium text-foreground leading-tight">タスク共有ボード</h1>
             <p className="text-[12px] text-muted-foreground">チーム共有アカウントでログイン</p>
           </div>
         </div>
