@@ -73,6 +73,20 @@ export async function loadSnapshot(): Promise<Snapshot> {
   };
 }
 
+/**
+ * public スキーマの変更通知を購読する（Supabase Realtime）。
+ * RLS を通る行の変更だけが届くので、ログイン済みにしか配信されない。戻り値で購読解除。
+ */
+export function subscribeToChanges(onChange: (table: string) => void): () => void {
+  const channel = supabase
+    .channel("public-changes")
+    .on("postgres_changes", { event: "*", schema: "public" }, (payload) => onChange(payload.table))
+    .subscribe();
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
 // --- workspaces ---
 export async function updateWorkspace(id: string, patch: { name?: string; logoUrl?: string | null }) {
   const row: Partial<WorkspaceRow> = {};
