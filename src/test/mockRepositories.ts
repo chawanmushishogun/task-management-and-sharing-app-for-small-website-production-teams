@@ -9,6 +9,7 @@ import type { Member, Project, Section, Task } from "../app/types";
 export function createRepositoriesMock(snapshot: Snapshot) {
   return {
     loadSnapshot: vi.fn(async () => structuredClone(snapshot)),
+    subscribeToChanges: vi.fn((_onChange: (table: string) => void) => () => {}),
     updateWorkspace: vi.fn(async (_id: string, _patch: { name?: string; logoUrl?: string | null }) => {}),
     insertMember: vi.fn(async (_member: Member) => {}),
     updateMember: vi.fn(async (_member: Member) => {}),

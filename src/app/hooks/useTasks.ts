@@ -7,9 +7,10 @@ export interface NewTaskInput {
   projectId: string;
   sectionId: string;
   name: string;
+  position: number;
 }
 
-export function createTask({ projectId, sectionId, name }: NewTaskInput): Task {
+export function createTask({ projectId, sectionId, name, position }: NewTaskInput): Task {
   return {
     id: crypto.randomUUID(),
     sectionId,
@@ -20,7 +21,18 @@ export function createTask({ projectId, sectionId, name }: NewTaskInput): Task {
     endDate: null,
     status: "todo",
     note: "",
+    position,
   };
+}
+
+/** セクション内の表示順で並べる。同順なら安定ソート */
+export function sortTasks(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => a.position - b.position);
+}
+
+/** そのセクションの末尾に追加するための position */
+export function nextPosition(tasks: Task[], sectionId: string): number {
+  return tasks.filter((t) => t.sectionId === sectionId).reduce((max, t) => Math.max(max, t.position + 1), 0);
 }
 
 /**
@@ -40,8 +52,9 @@ export function useTasks(store: Store) {
     updateTask(id, { status });
   }
 
-  function addTask(input: NewTaskInput) {
-    addTasks([input]);
+  /** セクションの末尾に追加する */
+  function addTask(input: Omit<NewTaskInput, "position">) {
+    addTasks([{ ...input, position: nextPosition(tasks, input.sectionId) }]);
   }
 
   function addTasks(inputs: NewTaskInput[]) {

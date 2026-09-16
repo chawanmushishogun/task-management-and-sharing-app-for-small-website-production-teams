@@ -39,6 +39,8 @@ export interface Task {
   endDate: string | null;
   status: Status;
   note: string;
+  /** セクション内の表示順 */
+  position: number;
 }
 
 /** 表示用のイニシャル。DB には持たず名前から作る */

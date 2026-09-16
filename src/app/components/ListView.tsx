@@ -8,6 +8,7 @@ import { StatusSelect } from "./StatusSelect";
 import { COL_W, TASK_NAME_MIN_W, TASK_NAME_PL } from "../constants";
 import { isOverdue } from "../utils/date";
 import type { Member, Section, Status, Task } from "../types";
+import { sortTasks } from "../hooks/useTasks";
 
 export function ListView({
   tasks,
@@ -60,7 +61,7 @@ export function ListView({
       </div>
 
       {sections.map((section) => {
-        const sectionTasks = tasks.filter((t) => t.sectionId === section.id);
+        const sectionTasks = sortTasks(tasks.filter((t) => t.sectionId === section.id));
         const isCollapsed = collapsed[section.id] === true;
         return (
           <div key={section.id} className="my-[20px]">

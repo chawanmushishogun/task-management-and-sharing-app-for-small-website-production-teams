@@ -41,10 +41,11 @@ export async function loadSnapshot(): Promise<Snapshot> {
     supabase
       .from("projects")
       .select(
-        "id,name,color,position,is_other,sections(id,project_id,name,position,tasks(id,section_id,assignee_id,name,status,start_date,end_date,note,created_at))",
+        "id,name,color,position,is_other,sections(id,project_id,name,position,tasks(id,section_id,assignee_id,name,status,start_date,end_date,note,position,created_at))",
       )
       .order("position")
       .order("position", { referencedTable: "sections" })
+      .order("position", { referencedTable: "sections.tasks" })
       .order("created_at", { referencedTable: "sections.tasks" }),
   ]);
   if (ws.error) fail("workspaces の取得", ws.error);
@@ -70,6 +71,20 @@ export async function loadSnapshot(): Promise<Snapshot> {
     projects,
     sections,
     tasks,
+  };
+}
+
+/**
+ * public スキーマの変更通知を購読する（Supabase Realtime）。
+ * RLS を通る行の変更だけが届くので、ログイン済みにしか配信されない。戻り値で購読解除。
+ */
+export function subscribeToChanges(onChange: (table: string) => void): () => void {
+  const channel = supabase
+    .channel("public-changes")
+    .on("postgres_changes", { event: "*", schema: "public" }, (payload) => onChange(payload.table))
+    .subscribe();
+  return () => {
+    supabase.removeChannel(channel);
   };
 }
 
