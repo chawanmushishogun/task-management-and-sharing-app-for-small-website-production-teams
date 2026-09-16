@@ -41,10 +41,11 @@ export async function loadSnapshot(): Promise<Snapshot> {
     supabase
       .from("projects")
       .select(
-        "id,name,color,position,is_other,sections(id,project_id,name,position,tasks(id,section_id,assignee_id,name,status,start_date,end_date,note,created_at))",
+        "id,name,color,position,is_other,sections(id,project_id,name,position,tasks(id,section_id,assignee_id,name,status,start_date,end_date,note,position,created_at))",
       )
       .order("position")
       .order("position", { referencedTable: "sections" })
+      .order("position", { referencedTable: "sections.tasks" })
       .order("created_at", { referencedTable: "sections.tasks" }),
   ]);
   if (ws.error) fail("workspaces の取得", ws.error);

@@ -39,6 +39,7 @@ export interface TaskRow {
   start_date: string | null;
   end_date: string | null;
   note: string;
+  position: number;
 }
 
 export const toWorkspace = (r: WorkspaceRow): Workspace => ({ id: r.id, name: r.name, logoUrl: r.logo_url });
@@ -66,6 +67,7 @@ export const toTask = (r: TaskRow, projectId: string): Task => ({
   endDate: r.end_date,
   status: r.status,
   note: r.note,
+  position: r.position,
 });
 
 export const fromMember = (m: Member): MemberRow => ({
@@ -96,6 +98,7 @@ export const fromTask = (t: Task): TaskRow => ({
   start_date: t.startDate,
   end_date: t.endDate,
   note: t.note,
+  position: t.position,
 });
 
 /** 画面の型の差分（Partial<Task> など）を DB の列名に直す */
@@ -108,5 +111,6 @@ export function taskPatchToRow(patch: Partial<Task>): Partial<TaskRow> {
   if (patch.startDate !== undefined) row.start_date = patch.startDate;
   if (patch.endDate !== undefined) row.end_date = patch.endDate;
   if (patch.note !== undefined) row.note = patch.note;
+  if (patch.position !== undefined) row.position = patch.position;
   return row;
 }

@@ -33,6 +33,7 @@ export function buildTask(overrides: Partial<Task> = {}): Task {
     endDate: null,
     status: "todo",
     note: "",
+    position: 0,
     ...overrides,
   };
 }

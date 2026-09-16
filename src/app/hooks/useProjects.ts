@@ -52,7 +52,9 @@ export function useProjects(store: Store) {
       position: i,
     }));
     const newTasks: Task[] = template.flatMap((t, i) =>
-      t.tasks.map((taskName) => createTask({ projectId: project.id, sectionId: newSections[i].id, name: taskName })),
+      t.tasks.map((taskName, j) =>
+        createTask({ projectId: project.id, sectionId: newSections[i].id, name: taskName, position: j }),
+      ),
     );
     store.mutate(
       (prev) => ({

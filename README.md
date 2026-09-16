@@ -32,6 +32,7 @@
 - ログインは Supabase Auth のチーム共有アカウント1件（`auth.users`）で行う。権限を持たない設計のため、アプリのテーブルから `auth.users` を参照しない
 - RLS：全テーブルで有効にし、ポリシーは「`authenticated` ロールのみ読み書き可」の1本。`anon` には何も許可しない（懸念点②参照）
 - 削除の連鎖：案件を削除すると中の工程・タスクも消える（ON DELETE CASCADE）。メンバーを削除してもタスクは残り、担当が未定（NULL）に戻る（ON DELETE SET NULL）
+- 変更（2026-09-16）：`tasks.position`（セクション内の表示順）を追加（`supabase/migrations/0005_tasks_position.sql`）。一括作成したタスクは `created_at` が同じで並びが不定になり、更新すると位置が変わる不具合があったため。上の画像には未反映
 
 ---
 
